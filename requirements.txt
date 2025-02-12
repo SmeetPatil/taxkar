@@ -1,0 +1,3 @@
+reportlab
+google-auth-oauthlib  # for Google login
+django-allauth  # for social authentication
