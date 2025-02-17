@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Phone Login{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h2>Login with Phone</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Phone Number:</label>
+            <input type="tel" name="phone" pattern="[0-9]{10}" required>
+            <small>Enter 10 digit number</small>
+        </div>
+        <button type="submit" class="btn">Send OTP</button>
+    </form>
+</div>
+{% endblock %}

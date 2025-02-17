@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Calculation History{% endblock %}
+
+{% block content %}
+<div class="history-container">
+    <h2>Your Calculation History</h2>
+    
+    <div class="section">
+        <h3>Income Tax Calculations</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Gross Income</th>
+                    <th>Tax Regime</th>
+                    <th>Calculated Tax</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for calc in tax_calculations %}
+                <tr>
+                    <td>{{ calc.calculation_date|date:"d M Y" }}</td>
+                    <td>₹ {{ calc.gross_income }}</td>
+                    <td>{{ calc.tax_regime }}</td>
+                    <td>₹ {{ calc.calculated_tax }}</td>
+                    <td>
+                        <a href="{% url 'invoice_detail' calc.id %}" class="btn">View</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">No tax calculations found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>GST Calculations</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Base Amount</th>
+                    <th>GST Rate</th>
+                    <th>Calculated GST</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for calc in gst_calculations %}
+                <tr>
+                    <td>{{ calc.calculation_date|date:"d M Y" }}</td>
+                    <td>₹ {{ calc.base_amount }}</td>
+                    <td>{{ calc.gst_rate }}%</td>
+                    <td>₹ {{ calc.calculated_gst }}</td>
+                    <td>
+                        <a href="{% url 'invoice_detail' calc.id %}" class="btn">View</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">No GST calculations found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

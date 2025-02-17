@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Income Tax Calculator{% endblock %}
+
+{% block content %}
+<h2>Income Tax Calculator</h2>
+<form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <label>Gross Income:</label>
+        <input type="number" name="gross_income" required>
+    </div>
+    <div class="form-group">
+        <label>Tax Regime:</label>
+        <select name="regime">
+            <option value="NEW">New Regime</option>
+            <option value="OLD">Old Regime</option>
+        </select>
+    </div>
+    <h3>Deductions (Old Regime)</h3>
+    <div class="form-group">
+        <label>80C:</label>
+        <input type="number" name="80c" value="0">
+    </div>
+    <div class="form-group">
+        <label>HRA:</label>
+        <input type="number" name="hra" value="0">
+    </div>
+    <div class="form-group">
+        <label>Medical:</label>
+        <input type="number" name="medical" value="0">
+    </div>
+    <div class="form-group">
+        <label>Save Calculation:</label>
+        <input type="checkbox" name="save">
+    </div>
+    <button type="submit" class="btn">Calculate</button>
+</form>
+{% endblock %}
