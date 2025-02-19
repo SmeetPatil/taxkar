@@ -11,6 +11,7 @@ TaxKar is a an online website (G2C) that can be used to assess income tax, GST o
    > pip install -r requirements.txt
 5. Once the requirements are installed, run migrations in the project using :
    > python manage.py makemigrations
+   >
    > python manage.py migrate
 6. Create a superuser and remember the username and password. Use :
    > python manage.py createsuperuser
