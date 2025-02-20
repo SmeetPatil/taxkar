@@ -28,6 +28,18 @@
     </div>
     <button type="submit" class="btn">Convert</button>
 </form>
+    <div class="card">
+    <form method="post">
+        <!-- Your form fields -->
+        <button type="submit">Calculate</button>
+
+        {% if not user.is_authenticated %}
+        <div class="login-prompt">
+            <p>Want to save your calculation history? <a href="{% url 'login' %}">Log in</a> or <a href="{% url 'register' %}">create an account</a>.</p>
+        </div>
+        {% endif %}
+    </form>
+    </div>
 
 <div class="rates-table">
     <h3>Current Exchange Rates</h3>

@@ -1,10 +1,17 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-from .models import TaxCalculation, GSTCalculation, ForexRate
+from .models import TaxCalculation, GSTCalculation, ForexRate, TaxCalculationHistory, GSTCalculationHistory, \
+    ForexConversionHistory
 from decimal import Decimal
 import json
 from datetime import datetime, timedelta
+from django.shortcuts import render, redirect
+from django.contrib.auth.models import User
+from django.contrib.auth import login
+from twilio.rest import Client
+from .models import PhoneVerification
+from django.conf import settings
 
 
 def home(request):
@@ -91,7 +98,23 @@ def history_view(request):
     tax_calculations = TaxCalculation.objects.filter(user=request.user).order_by('-calculation_date')
     gst_calculations = GSTCalculation.objects.filter(user=request.user).order_by('-calculation_date')
 
-    return render(request, 'history.html', {
+    return render(request, 'history/history.html', {
         'tax_calculations': tax_calculations,
         'gst_calculations': gst_calculations
     })
+
+
+@login_required
+def history_dashboard(request):
+    tax_history = TaxCalculationHistory.objects.filter(user=request.user)[:10]
+    gst_history = GSTCalculationHistory.objects.filter(user=request.user)[:10]
+    forex_history = ForexConversionHistory.objects.filter(user=request.user)[:10]
+
+    context = {
+        'tax_history': tax_history,
+        'gst_history': gst_history,
+        'forex_history': forex_history,
+    }
+
+    return render(request, 'history/history.html', context)
+

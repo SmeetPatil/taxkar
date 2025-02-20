@@ -21,5 +21,9 @@ urlpatterns = [
     path('invoices/', invoice_views.invoice_list, name='invoice_list'),
     path('invoices/<int:id>/', invoice_views.invoice_detail, name='invoice_detail'),
     path('invoices/<int:id>/download/', invoice_views.download_invoice, name='download_invoice'),
+
+    path('phone-login/', auth_views.phone_login, name='phone_login'),
+    path('verify-code/', auth_views.verify_code, name='verify_code'),
+    path('history/', views.history_dashboard, name='history_dashboard'),
 ]
 

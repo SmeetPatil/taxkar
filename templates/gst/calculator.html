@@ -26,10 +26,18 @@
             <option value="INTER">Inter State</option>
         </select>
     </div>
-    <div class="form-group">
-        <label>Save Calculation:</label>
-        <input type="checkbox" name="save">
+    <!-- In each of your calculator templates (calculate_tax.html, calculate_gst.html, forex_converter.html) -->
+    <div class="card">
+    <form method="post">
+        <!-- Your form fields -->
+        <button type="submit" class = "btn">Calculate</button>
+
+        {% if not user.is_authenticated %}
+        <div class="login-prompt">
+            <p>Want to save your calculation history? <a href="{% url 'login' %}">Log in</a> or <a href="{% url 'register' %}">create an account</a>.</p>
+        </div>
+        {% endif %}
+    </form>
     </div>
-    <button type="submit" class="btn">Calculate GST</button>
 </form>
 {% endblock %}

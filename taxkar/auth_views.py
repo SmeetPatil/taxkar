@@ -10,6 +10,12 @@ import random
 from django.conf import settings
 import jwt
 from datetime import datetime, timedelta
+from django.shortcuts import render, redirect
+from django.contrib.auth.models import User
+from django.contrib.auth import login
+from twilio.rest import Client
+from .models import PhoneVerification
+from django.conf import settings
 
 
 def login_view(request):
@@ -117,6 +123,59 @@ def google_login_view(request):
             messages.error(request, 'Invalid Google token')
 
     return render(request, 'auth/login.html')
+
+
+def phone_login(request):
+    if request.method == 'POST':
+        phone_number = request.POST.get('phone_number')
+
+        # Generate verification code
+        code = PhoneVerification.generate_code()
+        PhoneVerification.objects.create(
+            phone_number=phone_number,
+            verification_code=code
+        )
+
+        # Send SMS via Twilio
+        client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+        message = client.messages.create(
+            body=f'Your verification code is {code}',
+            from_=settings.TWILIO_PHONE_NUMBER,
+            to=phone_number
+        )
+
+        # Store phone number in session for verification page
+        request.session['phone_number'] = phone_number
+        return redirect('verify_code')
+
+    return render(request, 'auth/phone_login.html')
+
+
+def verify_code(request):
+    if request.method == 'POST':
+        phone_number = request.session.get('phone_number')
+        code = request.POST.get('code')
+
+        verification = PhoneVerification.objects.filter(
+            phone_number=phone_number,
+            verification_code=code
+        ).first()
+
+        if verification:
+            # Check if user exists, otherwise create
+            user, created = User.objects.get_or_create(username=phone_number)
+
+            # Specify the authentication backend
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+
+            # Store the phone number in session for display
+            request.session['login_method'] = 'phone'
+            request.session['phone_number_display'] = phone_number
+
+            # Redirect to home
+            return redirect('home')  # Assuming 'home' is your URL name
+
+    return render(request, 'auth/verify_code.html')
 
 
 def logout_view(request):

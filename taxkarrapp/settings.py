@@ -84,6 +84,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'taxkarrapp.wsgi.application'
 
+#Twilio
+TWILIO_ACCOUNT_SID = 'ACdd0185620aaf22227bdbe056a95138b0'
+TWILIO_AUTH_TOKEN = '1c02c2bbaa952c216c6b745638ff5c3e'
+TWILIO_PHONE_NUMBER = '+18315151512'
+
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
