@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaxKar - Home</title>
+    <style>
+        :root {
+            --primary: #0F0904;
+            --secondary: #FF8B3D;
+            --accent: #FF4E16;
+            --highlight: #FFB800;
+            --text: #ffffff;
+            --glass: rgba(255, 255, 255, 0.08);
+            --gradient: linear-gradient(45deg, #FF8B3D, #FF4E16, #FFB800);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+            background: var(--primary);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: 2rem;
+        }
+
+        .nav {
+            width: 100%;
+            max-width: 1000px;
+            background: var(--glass);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .nav a {
+            color: var(--text);
+            text-decoration: none;
+            margin: 0 1rem;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+        .nav a:hover {
+            color: var(--highlight);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            padding: 2.5rem;
+            background: var(--glass);
+            border-radius: 20px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--gradient);
+            color: var(--primary);
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-decoration: none;
+            margin-top: 1rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 139, 61, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div>
+            <a href="#">Home</a>
+            <a href="#">Income Tax</a>
+            <a href="#">GST</a>
+            <a href="#">Forex</a>
+            <a href="#">History</a>
+        </div>
+        <div>
+            <a href="#" class="btn">Login</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Welcome to TaxKar</h1>
+        <p>Use the navigation to access different calculators and tools.</p>
+    </div>
+</body>
+</html>
