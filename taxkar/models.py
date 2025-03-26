@@ -1,6 +1,7 @@
-from django.db import models
+from datetime import datetime
 from django.contrib.auth.models import User
-from django.core.validators import MinValueValidator
+from django.db import models
+
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -97,3 +98,31 @@ class ForexConversionHistory(models.Model):
 
     class Meta:
         ordering = ['-conversion_date']
+
+# models.py
+
+from django.db import models
+from datetime import datetime
+
+class ExchangeRate(models.Model):
+    from_currency = models.CharField(max_length=3)
+    to_currency = models.CharField(max_length=3)
+    rate = models.DecimalField(max_digits=20, decimal_places=10)
+    timestamp = models.DateTimeField(default=datetime.now)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['from_currency', 'to_currency']),
+            models.Index(fields=['timestamp']),
+        ]
+
+class HistoricalRate(models.Model):
+    from_currency = models.CharField(max_length=3)
+    to_currency = models.CharField(max_length=3)
+    rate = models.DecimalField(max_digits=20, decimal_places=10)
+    date = models.DateField()
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['from_currency', 'to_currency', 'date']),
+        ]

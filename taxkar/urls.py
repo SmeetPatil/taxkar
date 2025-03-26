@@ -14,7 +14,7 @@ urlpatterns = [
     # Calculator URLs
     path('tax/calculate/', views.calculate_tax, name='calculate_tax'),
     path('gst/calculate/', views.calculate_gst, name='calculate_gst'),
-    path('forex/', views.forex_converter, name='forex_converter'),
+    path('forex/converter/', views.converter, name='converter'),
     path('history/', views.history_view, name='history'),
 
     # Invoice URLs

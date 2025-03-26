@@ -151,6 +151,31 @@ def phone_login(request):
     return render(request, 'auth/phone_login.html')
 
 
+'''
+def phone_login(request):
+    if request.method == 'POST':
+        phone_number = request.POST.get('phone_number')
+
+        # Generate verification code
+        code = PhoneVerification.generate_code()
+        PhoneVerification.objects.create(
+            phone_number=phone_number,
+            verification_code=code
+        )
+
+        # For development testing - skip Twilio API call
+
+
+        # Just show the code in a message
+        messages.success(request, f'Verification code: {code}')
+
+        # Store phone number in session for verification page
+        request.session['phone_number'] = phone_number
+        return redirect('verify_code')
+
+    return render(request, 'auth/phone_login.html')
+'''
+
 def verify_code(request):
     if request.method == 'POST':
         phone_number = request.session.get('phone_number')

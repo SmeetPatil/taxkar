@@ -1,127 +1,49 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        :root {
-            --primary: #0F0904;
-            --secondary: #FF8B3D;
-            --accent: #FF4E16;
-            --highlight: #FFB800;
-            --gradient: linear-gradient(45deg, #FF8B3D 0%, #FF4E16 50%, #FFB800 100%);
-            --text: #ffffff;
-            --glass: rgba(255, 255, 255, 0.08);
-        }
+{% extends 'base.html' %}
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% block title %}Income Tax Calculator{% endblock %}
 
-        body {
-            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-            background: var(--primary);
-            min-height: 100vh;
-            color: var(--text);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow-x: hidden;
-            overflow-y: auto;
-            padding: 2rem;
-        }
-
-        .calculator-container {
-            width: 100%;
-            max-width: 600px;
-            padding: 2.5rem;
-            background: var(--glass);
-            border-radius: 20px;
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
-        }
-
-        h2 {
-            font-size: 2rem;
-            font-weight: 800;
-            background: var(--gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 1.5rem;
-        }
-
-        .input-group {
-            margin-bottom: 1.2rem;
-            text-align: left;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 0.75rem;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 8px;
-            color: var(--text);
-            font-size: 1rem;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 1rem;
-            background: var(--gradient);
-            color: var(--primary);
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 1.5rem;
-            transition: 0.3s;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(255, 139, 61, 0.3);
-        }
-    </style>
-</head>
-<body>
-    <div class="calculator-container">
-        <h2>Income Tax Calculator</h2>
-        <form>
-            <div class="input-group">
-                <label>Gross Income:</label>
-                <input type="number" placeholder="Enter amount">
-            </div>
-            <div class="input-group">
-                <label>Tax Regime:</label>
-                <select>
-                    <option value="NEW">New Regime</option>
-                    <option value="OLD">Old Regime</option>
-                </select>
-            </div>
-            <h3>Deductions (Old Regime)</h3>
-            <div class="input-group">
-                <label>80C:</label>
-                <input type="number" placeholder="Enter amount">
-            </div>
-            <div class="input-group">
-                <label>HRA:</label>
-                <input type="number" placeholder="Enter amount">
-            </div>
-            <div class="input-group">
-                <label>Medical:</label>
-                <input type="number" placeholder="Enter amount">
-            </div>
-            <button type="submit" class="btn">Calculate</button>
-        </form>
+{% block content %}
+<h2>Income Tax Calculator</h2>
+<form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <label>Gross Income:</label>
+        <input type="number" name="gross_income" required>
     </div>
-</body>
-</html>
+    <div class="form-group">
+        <label>Tax Regime:</label>
+        <select name="regime">
+            <option value="NEW">New Regime</option>
+            <option value="OLD">Old Regime</option>
+        </select>
+    </div>
+    <h3>Deductions (Old Regime)</h3>
+    <div class="form-group">
+        <label>80C:</label>
+        <input type="number" name="80c" value="0">
+    </div>
+    <div class="form-group">
+        <label>HRA:</label>
+        <input type="number" name="hra" value="0">
+    </div>
+    <div class="form-group">
+        <label>Medical:</label>
+        <input type="number" name="medical" value="0">
+        <br><br>
+        <button type="submit" name="save" value="true" class="btn btn-primary">Save Calculation</button>
+    </div>
+
+    <div class="card">
+    <form method="post">
+        <!-- Your form fields -->
+        <button type="submit" class="btn">Calculate</button>
+
+        {% if not user.is_authenticated %}
+        <div class="login-prompt">
+            <p>Want to save your calculation history? <a href="{% url 'login' %}">Log in</a> or <a href="{% url 'register' %}">create an account</a>.</p>
+        </div>
+        {% endif %}
+    </form>
+    </div>
+</form>
+{% endblock %}

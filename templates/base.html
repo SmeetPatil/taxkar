@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaxKar - Home</title>
+    <title>TaxKar - {% block title %}Home{% endblock %}</title>
     <style>
+        /* Modern styling based on new_templates */
         :root {
             --primary: #0F0904;
             --secondary: #FF8B3D;
@@ -15,41 +16,45 @@
             --gradient: linear-gradient(45deg, #FF8B3D, #FF4E16, #FFB800);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
             background: var(--primary);
             color: var(--text);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            padding: 2rem;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2.5rem;
+            background: transparent;
+            border-radius: 20px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
         }
 
         .nav {
-            width: 100%;
-            max-width: 1000px;
             background: var(--glass);
+            color: var(--text);
+            padding: 1rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem 2rem;
             border-radius: 12px;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 1rem;
         }
 
         .nav a {
             color: var(--text);
             text-decoration: none;
-            margin: 0 1rem;
+            padding: 0.5rem 1rem;
+            margin: 0 0.5rem;
             font-weight: 500;
             transition: 0.3s;
         }
@@ -58,25 +63,41 @@
             color: var(--highlight);
         }
 
-        .container {
-            width: 100%;
-            max-width: 800px;
-            padding: 2.5rem;
-            background: var(--glass);
-            border-radius: 20px;
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
-            margin-top: 2rem;
+        .form-group {
+            margin-bottom: 1.5rem;
         }
 
-        h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            background: var(--gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 1.5rem;
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input, 
+        .form-group select {
+            width: 69%;
+            padding: 0.75rem;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: var(--text);
+            font-size: 1rem;
+        }
+        
+        /* Fix for dropdown options */
+        select option {
+            background-color: var(--primary);
+            color: var(--text);
+        }
+        
+        /* Fix for any result text */
+        .result-text, .conversion-result, .calculation-result {
+            color: var(--text);
+            background: rgba(255,255,255,0.1);
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
         .btn {
@@ -98,25 +119,69 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(255, 139, 61, 0.3);
         }
+
+        .alert {
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 10px;
+            background: rgba(255, 184, 0, 0.05);
+            border: 1px solid rgba(255, 184, 0, 0.1);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 1rem 0;
+        }
+
+        .table th, 
+        .table td {
+            padding: 0.875rem;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            text-align: left;
+        }
+
+        .table th {
+            font-weight: 600;
+            background: rgba(255,255,255,0.05);
+        }
+        
+        /* Additional styling for input focus states */
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--highlight);
+            box-shadow: 0 0 0 2px rgba(255, 184, 0, 0.2);
+        }
     </style>
 </head>
 <body>
     <nav class="nav">
-        <div>
-            <a href="#">Home</a>
-            <a href="#">Income Tax</a>
-            <a href="#">GST</a>
-            <a href="#">Forex</a>
-            <a href="#">History</a>
-        </div>
-        <div>
-            <a href="#" class="btn">Login</a>
-        </div>
+        <a href="{% url 'home' %}">Home</a>
+        <a href="{% url 'calculate_tax' %}">Income Tax</a>
+        <a href="{% url 'calculate_gst' %}">GST</a>
+        <a href="{% url 'converter' %}">Forex</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'history_dashboard' %}">History</a>
+            <a href="{% url 'logout' %}">Logout</a>
+        {% else %}
+            <a href="{% url 'login' %}">Login</a>
+        {% endif %}
+        <a style = "alignment-baseline: bottom">
+            <img  style = "vertical-align: middle; background-color: var(--accent);" width="48" height="48"
+                  src="https://img.icons8.com/parakeet-line/48/user-male-circle.png" alt="user-male-circle"/>
+            {{ user.username }}</a>
     </nav>
 
     <div class="container">
-        <h1>Welcome to TaxKar</h1>
-        <p>Use the navigation to access different calculators and tools.</p>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
     </div>
 </body>
 </html>
