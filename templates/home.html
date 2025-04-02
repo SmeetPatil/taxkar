@@ -3,30 +3,119 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-<div class="home-container">
-    {% if request.session.login_method == 'phone' %}
-    <div class="alert alert-success">
-        Logged in using phone no.: {{ request.session.phone_number_display }}
-    </div>
-    {% endif %}
-
+<div class="welcome-section">
     <h1>Welcome to TaxKar</h1>
-    <div class="services">
-        <div class="service-box">
-            <h2>Income Tax Calculator</h2>
-            <p>Calculate your income tax under both old and new regimes</p>
-            <a href="{% url 'calculate_tax' %}" class="btn">Calculate Income Tax</a>
-        </div>
-        <div class="service-box">
-            <h2>GST Calculator</h2>
-            <p>Calculate GST for your transactions</p>
-            <a href="{% url 'calculate_gst' %}" class="btn">Calculate GST</a>
-        </div>
-        <div class="service-box">
-            <h2>Forex Converter</h2>
-            <p>Convert currencies and view historical rates</p>
-            <a href="{% url 'converter' %}" class="btn">Convert Currency</a>
-        </div>
-    </div>
 </div>
+
+<div class="services-grid">
+    <a href="{% url 'calculate_tax' %}" class="service-box">
+        <h2>Income Tax</h2>
+        <p>Calculate your income tax under both old and new regimes</p>
+    </a>
+
+    <a href="{% url 'calculate_gst' %}" class="service-box">
+        <h2>GST</h2>
+        <p>Calculate GST for your transactions</p>
+    </a>
+
+    <a href="{% url 'converter' %}" class="service-box">
+        <h2>Forex</h2>
+        <p>Convert currencies and view historical rates</p>
+    </a>
+
+    <a href="{% url 'stock_tracker' %}" class="service-box">
+        <h2>Stock Market</h2>
+        <p>Track stock prices and predict future trends with ARIMA model</p>
+    </a>
+</div>
+
+<style>
+    .welcome-section {
+        margin-bottom: 3rem;
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    .welcome-section h1 {
+        font-size: 2.5rem;
+        background: var(--gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+    }
+
+    .services-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        padding: 1rem;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    .service-box {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(0, 0, 0, 0.9);
+        border-radius: 20px;
+        padding: 2rem;
+        text-decoration: none;
+        color: var(--text);
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+
+    .service-box:hover {
+        transform: translateY(-5px);
+        background: rgba(39, 84, 138,0.25);
+        border-color: var(--secondary);
+        box-shadow: 0 10px 20px rgba(255, 139, 61, 0.1);
+    }
+
+    .service-box h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: var(--secondary);
+    }
+
+    .service-box p {
+        font-size: 0.95rem;
+        opacity: 0.8;
+        margin: 0;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .services-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            padding: 0.5rem;
+        }
+
+        .service-box {
+            padding: 1.5rem;
+        }
+    }
+</style>
 {% endblock %}

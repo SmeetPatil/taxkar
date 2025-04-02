@@ -1,6 +1,7 @@
 from datetime import datetime
 from django.contrib.auth.models import User
 from django.db import models
+from django.conf import settings  # Add this import
 
 
 class UserProfile(models.Model):
@@ -126,3 +127,48 @@ class HistoricalRate(models.Model):
         indexes = [
             models.Index(fields=['from_currency', 'to_currency', 'date']),
         ]
+
+
+class StockData(models.Model):
+    symbol = models.CharField(max_length=10)
+    date = models.DateField()
+    open_price = models.DecimalField(max_digits=20, decimal_places=2)
+    high_price = models.DecimalField(max_digits=20, decimal_places=2)
+    low_price = models.DecimalField(max_digits=20, decimal_places=2)
+    close_price = models.DecimalField(max_digits=20, decimal_places=2)
+    volume = models.BigIntegerField()
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['symbol', 'date']),
+        ]
+        unique_together = ('symbol', 'date')
+        ordering = ['-date']
+
+class StockPrediction(models.Model):
+    symbol = models.CharField(max_length=10)
+    prediction_date = models.DateTimeField(auto_now_add=True)
+    target_date = models.DateField()
+    predicted_price = models.DecimalField(max_digits=20, decimal_places=2)
+    confidence_interval_lower = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
+    confidence_interval_upper = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
+    model_parameters = models.JSONField(null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['symbol', 'target_date']),
+            models.Index(fields=['user', 'prediction_date']),
+        ]
+        ordering = ['-prediction_date']
+
+class StockSearchHistory(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    symbol = models.CharField(max_length=10)
+    search_date = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'search_date']),
+        ]
+        ordering = ['-search_date']

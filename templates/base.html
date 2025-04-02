@@ -7,170 +7,175 @@
     <style>
         /* Modern styling based on new_templates */
         :root {
-            --primary: #0F0904;
-            --secondary: #FF8B3D;
-            --accent: #FF4E16;
-            --highlight: #FFB800;
-            --text: #ffffff;
-            --glass: rgba(255, 255, 255, 0.08);
-            --gradient: linear-gradient(45deg, #FF8B3D, #FF4E16, #FFB800);
+            --primary: #183B4E;    /* Dark blue */
+            --secondary: #27548A;  /* Medium blue */
+            --accent: #DDA853;     /* Gold */
+            --highlight: #DDA853;  /* Gold (same as accent) */
+            --text: #DDA853;       /* Changed to gold for better visibility */
+            --glass: rgba(39, 84, 138, 0.15);  /* Made more visible */
+            --gradient: linear-gradient(45deg, #27548A, #183B4E, #DDA853);
+            --background: #F5EEDC; /* Light beige background */
         }
 
         body {
             font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-            background: var(--primary);
+            background: var(--background);
             color: var(--text);
             line-height: 1.6;
             margin: 0;
             padding: 0;
+            margin-top: 80px; /* Navbar offset */
         }
 
         .container {
             width: 90%;
-            max-width: 800px;
+            max-width: 1200px;
             margin: 2rem auto;
             padding: 2.5rem;
             background: transparent;
             border-radius: 20px;
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.1);
             text-align: center;
         }
 
         .nav {
-            background: var(--glass);
-            color: var(--text);
+            background: rgba(24, 59, 78, 0.95); /* Based on primary color */
+            backdrop-filter: blur(10px);
             padding: 1rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 1rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-sizing: border-box;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 139, 61, 0.1);
+        }
+
+        .nav-group {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
         }
 
         .nav a {
             color: var(--text);
             text-decoration: none;
             padding: 0.5rem 1rem;
-            margin: 0 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
             font-weight: 500;
-            transition: 0.3s;
+            font-size: 0.95rem;
+            white-space: nowrap;
         }
 
-        .nav a:hover {
-            color: var(--highlight);
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-
-        .form-group input, 
-        .form-group select {
-            width: 69%;
-            padding: 0.75rem;
-            border-radius: 10px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: var(--text);
-            font-size: 1rem;
-        }
-        
-        /* Fix for dropdown options */
-        select option {
-            background-color: var(--primary);
-            color: var(--text);
-        }
-        
-        /* Fix for any result text */
-        .result-text, .conversion-result, .calculation-result {
-            color: var(--text);
-            background: rgba(255,255,255,0.1);
-            padding: 1rem;
-            border-radius: 10px;
-            margin: 1rem 0;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 0.75rem 1.5rem;
-            background: var(--gradient);
-            color: var(--primary);
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            text-decoration: none;
-            margin-top: 1rem;
-        }
-
-        .btn:hover {
+        .nav a:not(.user-profile):hover {
+            background: rgba(255, 139, 61, 0.1);
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(255, 139, 61, 0.3);
         }
 
-        .alert {
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-            border-radius: 10px;
-            background: rgba(255, 184, 0, 0.05);
-            border: 1px solid rgba(255, 184, 0, 0.1);
+        .nav a:not(.user-profile)::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            background: var(--secondary);
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: width 0.3s ease;
         }
 
-        .table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            margin: 1rem 0;
+        .nav a:not(.user-profile):hover::after {
+            width: 80%;
         }
 
-        .table th, 
-        .table td {
-            padding: 0.875rem;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            text-align: left;
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            background: linear-gradient(45deg, rgba(255, 139, 61, 0.1), rgba(255, 78, 22, 0.1));
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            border: 1px solid rgba(255, 139, 61, 0.2);
+            transition: all 0.3s ease;
         }
 
-        .table th {
-            font-weight: 600;
-            background: rgba(255,255,255,0.05);
+        .user-profile:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 139, 61, 0.1);
         }
-        
-        /* Additional styling for input focus states */
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--highlight);
-            box-shadow: 0 0 0 2px rgba(255, 184, 0, 0.2);
+
+        .user-profile img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--secondary);
+            padding: 2px;
+            background: var(--primary);
+        }
+
+        @media (max-width: 768px) {
+            .nav {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-group {
+                flex-direction: column;
+                width: 100%;
+                gap: 0.5rem;
+            }
+
+            .nav a {
+                width: 100%;
+                text-align: center;
+            }
+
+            .user-profile {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .container {
+                width: 95%;
+                padding: 1.5rem;
+                margin-top: 150px; /* Increased for mobile nav height */
+            }
         }
     </style>
+    <!-- Update the Plotly CDN to the latest version -->
+    <script src="https://cdn.plot.ly/plotly-2.30.1.min.js"></script>
 </head>
 <body>
+    <!-- Update the nav structure -->
     <nav class="nav">
-        <a href="{% url 'home' %}">Home</a>
-        <a href="{% url 'calculate_tax' %}">Income Tax</a>
-        <a href="{% url 'calculate_gst' %}">GST</a>
-        <a href="{% url 'converter' %}">Forex</a>
-        {% if user.is_authenticated %}
-            <a href="{% url 'history_dashboard' %}">History</a>
-            <a href="{% url 'logout' %}">Logout</a>
-        {% else %}
-            <a href="{% url 'login' %}">Login</a>
-        {% endif %}
-        <a style = "alignment-baseline: bottom">
-            <img  style = "vertical-align: middle; background-color: var(--accent);" width="48" height="48"
-                  src="https://img.icons8.com/parakeet-line/48/user-male-circle.png" alt="user-male-circle"/>
-            {{ user.username }}</a>
+        <div class="nav-group">
+            <a href="{% url 'home' %}">Home</a>
+            <a href="{% url 'calculate_tax' %}">Income Tax</a>
+            <a href="{% url 'calculate_gst' %}">GST</a>
+            <a href="{% url 'converter' %}">Forex</a>
+            <a href="{% url 'stock_tracker' %}">Stock Market</a>
+        </div>
+        
+        <div class="nav-group">
+            {% if user.is_authenticated %}
+                <a href="{% url 'history_dashboard' %}">History</a>
+                <a href="{% url 'logout' %}">Logout</a>
+                <a href="#" class="user-profile">
+                    <img src="https://img.icons8.com/parakeet-line/48/user-male-circle.png" alt="user-male-circle"/>
+                    <span>{{ user.username }}</span>
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}">Login</a>
+            {% endif %}
+        </div>
     </nav>
 
     <div class="container">

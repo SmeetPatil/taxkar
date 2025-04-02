@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Stock Search History - TaxKar{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Your Stock Search History</h1>
+    
+    <div class="history-section">
+        <h2>Recent Searches</h2>
+        {% if searches %}
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Search Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for search in searches %}
+                <tr>
+                    <td>{{ search.symbol }}</td>
+                    <td>{{ search.search_date }}</td>
+                    <td>
+                        <form method="post" action="{% url 'stock_tracker' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="symbol" value="{{ search.symbol }}">
+                            <button type="submit" class="btn-small">View Again</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>You haven't searched for any stocks yet.</p>
+        {% endif %}
+    </div>
+    
+    <div class="history-section">
+        <h2>Your Predictions</h2>
+        {% if predictions %}
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Prediction Date</th>
+                    <th>Target Date</th>
+                    <th>Predicted Price</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for prediction in predictions %}
+                <tr>
+                    <td>{{ prediction.symbol }}</td>
+                    <td>{{ prediction.prediction_date }}</td>
+                    <td>{{ prediction.target_date }}</td>
+                    <td>${{ prediction.predicted_price|floatformat:2 }}</td>
+                    <td>
+                        <form method="post" action="{% url 'stock_tracker' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="symbol" value="{{ prediction.symbol }}">
+                            <button type="submit" class="btn-small">View Again</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>You haven't made any predictions yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

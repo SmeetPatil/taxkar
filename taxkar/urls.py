@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views, auth_views, invoice_views
+from . import views, auth_views, invoice_views, stock_views
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -9,6 +9,10 @@ urlpatterns = [
     path('auth/register/', auth_views.register_view, name='register'),
     path('auth/phone-login/', auth_views.phone_login_view, name='phone_login'),
     path('auth/google-login/', auth_views.google_login_view, name='google_login'),
+    
+    # Stock Tracker URLs
+    path('stocks/tracker/', stock_views.stock_tracker, name='stock_tracker'),
+    path('stocks/history/', stock_views.stock_history, name='stock_history'),
     path('auth/logout/', auth_views.logout_view, name='logout'),
 
     # Calculator URLs

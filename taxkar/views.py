@@ -347,7 +347,7 @@ def converter(request, converted_amount=None):
                         paper_bgcolor='#0F0904'  # Match primary color
                     )
 
-                    # Simpler range selector
+                    # Simpler range selector with custom styling
                     fig.update_xaxes(
                         rangeslider_visible=True,
                         rangeselector=dict(
@@ -355,7 +355,21 @@ def converter(request, converted_amount=None):
                                 dict(count=7, label="1w", step="day", stepmode="backward"),
                                 dict(count=14, label="2w", step="day", stepmode="backward"),
                                 dict(step="all", label="1m")
-                            ])
+                            ]),
+                            bgcolor='rgba(255, 139, 61, 0.1)',  # Match your theme
+                            activecolor='rgba(255, 78, 22, 0.5)',  # Accent color when active
+                            x=0.05,  # Position from left
+                            y=1.1,   # Position from bottom
+                            font=dict(
+                                color='#ffffff',  # White text
+                                size=12,
+                            ),
+                            bordercolor='rgba(255, 139, 61, 0.2)',  # Border color
+                            borderwidth=1,
+                        ),
+                        rangeslider=dict(
+                            bgcolor='rgba(255, 255, 255, 0.05)',
+                            bordercolor='rgba(255, 139, 61, 0.2)',
                         )
                     )
 

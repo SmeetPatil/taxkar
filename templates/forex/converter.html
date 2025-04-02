@@ -1,154 +1,359 @@
-<!-- templates/forex/converter.html -->
 {% extends 'base.html' %}
 
-{% block title %}Forex - TaxKar{% endblock %}
+{% block title %}Forex Converter - TaxKar{% endblock %}
 
 {% block content %}
-<html>
-<head>
-    <title>Currency Converter</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.24.2/plotly.min.js"></script>
-    <style>
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .result {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: var(--primary);
-            border-radius: 5px;
-        }
-        .error {
-            color: #dc3545;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #dc3545;
-            border-radius: 5px;
-            background-color: #f8d7da;
-        }
-        #chart {
-            margin-top: 30px;
-            width: 100%;
-            height: 400px;
-        }
-        select, input {
-            padding: 8px;
-            margin: 5px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            width: 150px;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .currency-info {
-            font-size: 0.9em;
-            color: #666;
-            margin-top: 5px;
-        }
-    </style>
-</head>
-<body>
-    <div>
-        <h1>Currency Converter</h1>
+<div class="forex-container">
+    <h1>Forex Converter</h1>
+    <p class="current-date">{{ current_date }}</p>
 
-        {% if error %}
-        <div class="error">
-            {{ error }}
-        </div>
-        {% endif %}
-
-        <form method="POST">
+    <div class="converter-form">
+        <form method="post">
             {% csrf_token %}
             <div class="form-group">
-                <label for="from_currency">From Currency:</label>
-                <select name="from_currency" id="from_currency" required>
-                    {% if currencies %}
-                        {% for code, name in currencies.items %}
-                            <option value="{{ code }}" {% if from_currency == code %}selected{% endif %}>
-                                {{ code }} - {{ name }}
-                            </option>
-                        {% endfor %}
-                    {% else %}
-                        <option value="USD">USD - US Dollar</option>
-                        <option value="EUR">EUR - Euro</option>
-                        <option value="GBP">GBP - British Pound</option>
-                    {% endif %}
-                </select>
-            </div>
+                <div class="currency-input">
+                    <label for="amount">Amount</label>
+                    <input type="number" id="amount" name="amount" value="{{ amount|default:1 }}" step="0.01" required>
+                </div>
+                
+                <div class="currency-selectors">
+                    <div class="currency-select">
+                        <label for="from_currency">From</label>
+                        <select id="from_currency" name="from_currency" required>
+                            {% for code, name in currencies.items %}
+                                <option value="{{ code }}" {% if from_currency == code %}selected{% endif %}>
+                                    {{ code }} - {{ name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-            <div class="form-group">
-                <label for="to_currency">To Currency:</label>
-                <select name="to_currency" id="to_currency" required>
-                    {% if currencies %}
-                        {% for code, name in currencies.items %}
-                            <option value="{{ code }}" {% if to_currency == code %}selected{% endif %}>
-                                {{ code }} - {{ name }}
-                            </option>
-                        {% endfor %}
-                    {% else %}
-                        <option value="EUR">EUR - Euro</option>
-                        <option value="USD">USD - US Dollar</option>
-                        <option value="GBP">GBP - British Pound</option>
-                    {% endif %}
-                </select>
+                    <div class="currency-select">
+                        <label for="to_currency">To</label>
+                        <select id="to_currency" name="to_currency" required>
+                            {% for code, name in currencies.items %}
+                                <option value="{{ code }}" {% if to_currency == code %}selected{% endif %}>
+                                    {{ code }} - {{ name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
             </div>
-
-            <div class="form-group">
-                <label for="amount">Amount:</label>
-                <input type="number" name="amount" id="amount" step="0.01" value="{{ amount|default:1 }}" required>
-            </div>
-
-            <button type="submit" class="btn">Convert</button>
+            <button type="submit" class="convert-btn">Convert</button>
         </form>
+    </div>
 
-        {% if rate %}
-        <div class="result">
-            <h3>Conversion Result:</h3>
-            <p><h2> {{ amount }} {{ from_currency }} = {{ rate|floatformat:2 }} {{ to_currency }}</h2></p>
-            <p style="font-size: smaller; color: darkgrey; font-weight: bolder">As of {{current_date}}</p>
+    {% if rate is not None %}
+        <div class="conversion-result">
+            <h2>Conversion Result:</h2>
+            <div class="result-text">
+                <span class="amount">{{ amount }} {{ from_currency }}</span>
+                <span class="equals">=</span>
+                <span class="converted">{{ rate|floatformat:2 }} {{ to_currency }}</span>
+            </div>
+            <p class="timestamp">As of {{ current_date }}</p>
         </div>
-        {% endif %}
+    {% endif %}
 
-        {% if plot_data %}
-        <div id="chart"></div>
+    {% if plot_data %}
+        <div class="chart-container">
+            <div id="historical-chart"></div>
+        </div>
         <script>
             var plotData = {{ plot_data|safe }};
-            
-            // Update the plot colors to match the theme
-            plotData.data[0].line.color = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-            
-            // Update the layout for dark theme
-            plotData.layout.paper_bgcolor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
-            plotData.layout.plot_bgcolor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
-            plotData.layout.font = {
-                color: getComputedStyle(document.documentElement).getPropertyValue('--text').trim()
-            };
-            plotData.layout.xaxis.gridcolor = 'rgba(255, 255, 255, 0.1)';
-            plotData.layout.yaxis.gridcolor = 'rgba(255, 255, 255, 0.1)';
-            
-            Plotly.newPlot('chart', plotData.data, plotData.layout);
+            Plotly.newPlot('historical-chart', plotData.data, plotData.layout);
         </script>
-        {% endif %}
+    {% endif %}
+</div>
 
-        <div class="currency-info">
-            <p>Data provided by the European Central Bank via Frankfurter API</p>
-            <p>Historical data available from 1999 onwards</p>
-        </div>
-    </div>
-</body>
-</html>
+<style>
+    .forex-container {
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    .forex-container h1 {
+        font-size: 2.5rem;
+        background: var(--gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+    }
+
+    .current-date {
+        color: var(--text);
+        opacity: 0.8;
+        margin-bottom: 2rem;
+    }
+
+    .converter-form {
+        background: linear-gradient(135deg, rgba(39, 84, 138, 0.15), rgba(24, 59, 78, 0.25));
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(39, 84, 138, 0.2);
+        box-shadow: 0 4px 20px rgba(24, 59, 78, 0.1);
+    }
+
+    input, select {
+        background: rgba(245, 238, 220, 0.95);
+        border: 2px solid rgba(39, 84, 138, 0.3);
+        border-radius: 10px;
+        padding: 0.8rem;
+        color: #183B4E;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        cursor: pointer;
+    }
+
+    input:focus, select:focus {
+        border-color: #27548A;
+        box-shadow: 0 0 0 3px rgba(39, 84, 138, 0.2);
+        outline: none;
+    }
+
+    select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2327548A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.8rem center;
+        background-size: 1.2em;
+        padding-right: 2.5rem;
+    }
+
+    select option {
+        background: #F5EEDC;
+        color: #183B4E;
+        padding: 0.8rem;
+    }
+
+    label {
+        color: #DDA853;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .currency-input, .currency-select {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .currency-selectors {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    label {
+        color: var(--secondary);
+        font-weight: 500;
+    }
+
+    select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23FF8B3D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.8rem center;
+        background-size: 1.2em;
+        padding-right: 2.5rem;
+    }
+
+    select option {
+        background: var(--primary);
+        color: var(--text);
+        padding: 0.8rem;
+    }
+
+    .chart-container {
+        margin-top: 2rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 1.5rem;
+        backdrop-filter: blur(10px);
+    }
+
+    /* Add custom Plotly modebar styling */
+    .js-plotly-plot .plotly .modebar {
+        background: rgba(255, 255, 255, 0.1) !important;
+        border-radius: 10px;
+        padding: 5px;
+    }
+
+    .js-plotly-plot .plotly .modebar-btn path {
+        fill: var(--secondary) !important;
+    }
+
+    .js-plotly-plot .plotly .modebar-btn:hover path {
+        fill: var(--accent) !important;
+    }
+
+    /* Update the plot layout in the JavaScript */
+    <script>
+        {% if plot_data %}
+        document.addEventListener('DOMContentLoaded', function() {
+            var plotData = {{ plot_data|safe }};
+            
+            // Update layout for dark theme
+            plotData.layout.paper_bgcolor = 'rgba(0,0,0,0)';
+            plotData.layout.plot_bgcolor = 'rgba(0,0,0,0)';
+            plotData.layout.font = {
+                color: '#ffffff',
+                family: 'Plus Jakarta Sans, system-ui, sans-serif'
+            };
+            plotData.layout.xaxis.gridcolor = 'rgba(255,255,255,0.1)';
+            plotData.layout.yaxis.gridcolor = 'rgba(255,255,255,0.1)';
+            plotData.layout.xaxis.linecolor = 'rgba(255,255,255,0.2)';
+            plotData.layout.yaxis.linecolor = 'rgba(255,255,255,0.2)';
+            plotData.layout.margin = {
+                l: 50,
+                r: 50,
+                t: 30,
+                b: 50
+            };
+    
+            Plotly.newPlot('historical-chart', plotData.data, plotData.layout, {
+                displayModeBar: true,
+                displaylogo: false,
+                modeBarButtonsToRemove: ['select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d'],
+                toImageButtonOptions: {
+                    format: 'png',
+                    filename: 'forex_chart',
+                    height: 500,
+                    width: 900,
+                    scale: 2
+                }
+            });
+        });
+        {% endif %}
+    </script>
+    input:focus, select:focus {
+        outline: none;
+        border-color: var(--secondary);
+        box-shadow: 0 0 0 2px rgba(255, 139, 61, 0.2);
+    }
+
+    .convert-btn {
+        background: var(--gradient);
+        color: var(--text);
+        border: none;
+        border-radius: 10px;
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 1.5rem;
+        width: 100%;
+    }
+
+    .convert-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 139, 61, 0.2);
+    }
+
+    .conversion-result {
+        background: linear-gradient(135deg, rgba(39, 84, 138, 0.15), rgba(24, 59, 78, 0.25));
+        border-radius: 20px;
+        padding: 2rem;
+        margin-top: 2rem;
+        text-align: center;
+        animation: fadeInUp 0.8s ease-out;
+        border: 1px solid rgba(39, 84, 138, 0.2);
+        box-shadow: 0 4px 20px rgba(24, 59, 78, 0.1);
+    }
+
+    .result-text {
+        font-size: 1.5rem;
+        margin: 1rem 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .amount, .converted {
+        color: var(--secondary);
+        font-weight: 600;
+    }
+
+    .equals {
+        color: var(--text);
+        opacity: 0.8;
+    }
+
+    .timestamp {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        margin-top: 1rem;
+    }
+
+    .chart-container {
+        margin-top: 2rem;
+        background: rgba(255, 255, 255, 0);
+        border-radius: 20px;
+        padding: 1rem;
+        backdrop-filter: blur(10px);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .currency-selectors {
+            grid-template-columns: 1fr;
+        }
+
+        .result-text {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+    }
+    /* Update only the color-related properties in the plot layout */
+    <script>
+        {% if plot_data %}
+        document.addEventListener('DOMContentLoaded', function() {
+            var plotData = {{ plot_data|safe }};
+            
+            // Update layout colors for theme consistency
+            plotData.layout.paper_bgcolor = 'rgba(39, 84, 138, 0.1)';
+            plotData.layout.plot_bgcolor = 'rgba(39, 84, 138, 0.05)';
+            plotData.layout.font = {
+                color: '#183B4E',
+                family: 'Plus Jakarta Sans, system-ui, sans-serif'
+            };
+            plotData.layout.xaxis.gridcolor = 'rgba(39, 84, 138, 0.2)';
+            plotData.layout.yaxis.gridcolor = 'rgba(39, 84, 138, 0.2)';
+            plotData.layout.xaxis.linecolor = 'rgba(39, 84, 138, 0.3)';
+            plotData.layout.yaxis.linecolor = 'rgba(39, 84, 138, 0.3)';
+    
+            // Update the trace colors to match theme
+            plotData.data[0].line.color = '#27548A';
+    
+            Plotly.newPlot('historical-chart', plotData.data, plotData.layout);
+        });
+        {% endif %}
+    </script>
+</style>
 {% endblock %}

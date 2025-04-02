@@ -1,0 +1,336 @@
+{% extends 'base.html' %}
+
+{% block title %}Stock Tracker & Predictor - TaxKar{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Stock Tracker & Predictor</h1>
+    <p class="current-date">{{ current_date }}</p>
+    
+    <div class="stock-search-form">
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="symbol">Enter Stock Symbol</label>
+                <input class="stock-input" type="text" id="symbol" name="symbol" placeholder="e.g., AAPL, MSFT, RELIANCE.BSE, TCS.NSE" required>
+                <button type="submit" class="convert-btn">Search</button>
+            </div>
+        </form>
+        
+        {% if user.is_authenticated and recent_searches %}
+        <div class="recent-searches">
+            <h3>Recent Searches</h3>
+            <div class="search-tags">
+                {% for search in recent_searches %}
+                <form method="post" class="inline-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="symbol" value="{{ search.symbol }}">
+                    <button type="submit" class="tag-btn">{{ search.symbol }}</button>
+                </form>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if error %}
+    <div class="error-message">
+        {{ error }}
+    </div>
+    {% endif %}
+    
+    {% if symbol %}
+    <div class="stock-info">
+        <h2>{{ symbol }} Stock Information</h2>
+        <div class="price-info">
+            <div class="current-price">
+                <span class="label">Current Price:</span>
+                <span class="value">${{ current_price|floatformat:2 }}</span>
+            </div>
+            <div class="price-change {% if price_change >= 0 %}positive{% else %}negative{% endif %}">
+                <span class="value">
+                    {% if price_change >= 0 %}+{% endif %}${{ price_change|floatformat:2 }} ({{ price_change_percent|floatformat:2 }}%)
+                </span>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <div id="prediction-chart" style="width:100%; height:500px;"></div>
+            <p class="disclaimer">Note: Stock predictions are estimates and should not be used as the sole basis for investment decisions.</p>
+        </div>
+        
+        {% if prediction_data %}
+        <div class="prediction-table">
+            <h3>Detailed Prediction Data</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Predicted Price</th>
+                        <th>Lower Bound</th>
+                        <th>Upper Bound</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pred in prediction_data %}
+                    <tr>
+                        <td>{{ pred.date }}</td>
+                        <td>${{ pred.predicted_price|floatformat:2 }}</td>
+                        <td>${{ pred.lower_bound|floatformat:2 }}</td>
+                        <td>${{ pred.upper_bound|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // Check if Plotly is loaded
+    if (typeof Plotly === 'undefined') {
+        console.error('Plotly library not loaded');
+        document.getElementById('prediction-chart').innerHTML = '<p class="error-message">Error: Plotly library is not loaded. Please refresh the page or contact support.</p>';
+    } else {
+        // Only handle prediction chart now
+        {% if pred_plot_data %}
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                var predPlotData = {{ pred_plot_data|safe }};
+                
+                // Check if we have valid data
+                if (!predPlotData || !predPlotData.data || predPlotData.data.length === 0) {
+                    document.getElementById('prediction-chart').innerHTML = '<p class="error-message">Error: No prediction data available for chart rendering</p>';
+                    console.error('Invalid prediction plot data:', predPlotData);
+                    return;
+                }
+                
+                // Apply styling
+                predPlotData.layout.xaxis.gridcolor = 'rgba(255, 255, 255, 0.1)';
+                predPlotData.layout.yaxis.gridcolor = 'rgba(255, 255, 255, 0.1)';
+                
+                // Render the chart
+                Plotly.newPlot('prediction-chart', predPlotData.data, predPlotData.layout)
+                    .then(function() {
+                        console.log('Prediction chart rendered successfully');
+                    })
+                    .catch(function(error) {
+                        console.error('Error rendering prediction chart:', error);
+                        document.getElementById('prediction-chart').innerHTML = 
+                            '<p class="error-message">Error rendering prediction chart: ' + error.message + '</p>';
+                    });
+            } catch (error) {
+                console.error('Error processing prediction plot data:', error);
+                document.getElementById('prediction-chart').innerHTML = 
+                    '<p class="error-message">Error processing prediction chart data: ' + error.message + '</p>';
+            }
+        });
+        {% endif %}
+    }
+</script>
+
+<style>
+    .error-message {
+        color: #ff4e16;
+        background: rgba(255, 78, 22, 0.1);
+        padding: 1rem;
+        border-radius: 10px;
+        margin: 1rem 0;
+    }
+    
+    .prediction-table {
+        margin-top: 2rem;
+        overflow-x: auto;
+    }
+    
+    .prediction-table table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .prediction-table th {
+        background-color: rgba(255, 139, 61, 0.1);
+        color: #FF8B3D;
+        font-weight: 600;
+        text-align: left;
+        padding: 12px 15px;
+    }
+    
+    .prediction-table td {
+        padding: 10px 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .prediction-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .prediction-table tr:hover td {
+        background-color: rgba(255, 255, 255, 0.03);
+    }
+    
+    .inline-form {
+        display: inline-block;
+        margin-right: 5px;
+    }
+    
+    .tag-btn {
+        background-color: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    
+    .tag-btn:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+    
+    .search-tags {
+        margin-top: 10px;
+    }
+
+    .stock-search-form {
+        background: linear-gradient(135deg, rgba(39, 84, 138, 0.15), rgba(24, 59, 78, 0.25));
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(39, 84, 138, 0.2);
+        box-shadow: 0 4px 20px rgba(24, 59, 78, 0.1);
+        max-width: 600px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Fixed alignment property */
+        text-align: center;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        align-items: center; /* Fixed alignment property */
+        width: 100%;
+    }
+
+    .stock-input {
+        display: flex;
+        flex-direction: column;
+        gap: 2.5rem;
+        align-items: center;
+        width: 90%; /* Increased from 75% to 90% */
+    }
+
+    input[type="text"] {
+        background: rgba(245, 238, 220, 0.95);
+        border: 2px solid rgba(39, 84, 138, 0.3);
+        border-radius: 10px;
+        padding: 0.8rem;
+        color: #183B4E;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        width: 90%; /* Increased from default to 90% */
+        text-align: center;
+    }
+
+    /* Center the recent searches section */
+    .recent-searches {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(39, 84, 138, 0.2);
+        text-align: center;
+        width: 100%;
+    }
+
+    .search-tags {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    /* Center the error message */
+    .error-message {
+        text-align: center;
+        margin: 1rem auto;
+        max-width: 600px;
+    }
+
+    /* Center the stock info section */
+    .stock-info {
+        text-align: center;
+        margin: 2rem auto;
+        max-width: 800px;
+    }
+
+    input[type="text"]:focus {
+        border-color: #27548A;
+        box-shadow: 0 0 0 3px rgba(39, 84, 138, 0.2);
+        outline: none;
+    }
+
+    label {
+        color: #183B4E;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .convert-btn {
+        background: var(--gradient);
+        color: var(--text);
+        border: none;
+        border-radius: 10px;
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 1rem;
+        width: 50%;
+    }
+
+    .convert-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 139, 61, 0.2);
+    }
+
+    /* Update recent searches styling */
+    .recent-searches {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(39, 84, 138, 0.2);
+    }
+
+    .recent-searches h3 {
+        color: #DDA853;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+    }
+
+    .tag-btn {
+        background: rgba(39, 84, 138, 0.1);
+        border: 1px solid rgba(39, 84, 138, 0.2);
+        color: #183B4E;
+        padding: 0.5rem 1rem;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin: 0.25rem;
+    }
+
+    .tag-btn:hover {
+        background: rgba(39, 84, 138, 0.2);
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
