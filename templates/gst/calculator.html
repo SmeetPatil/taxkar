@@ -3,46 +3,243 @@
 {% block title %}GST Calculator{% endblock %}
 
 {% block content %}
-<h2>GST Calculator</h2>
-{% if error %}
-<div class="alert alert-danger">
-    {{ error }}
-</div>
-{% endif %}
-<form method="post">
-    {% csrf_token %}
-    <div class="form-group">
-        <label>Base Amount:</label>
-        <input type="number" name="base_amount" step="0.01" required>
-    </div>
-    <div class="form-group">
-        <label>GST Rate (%):</label>
-        <select name="gst_rate">
-            <option value="5">5%</option>
-            <option value="12">12%</option>
-            <option value="18">18%</option>
-            <option value="28">28%</option>
-        </select>
-    </div>
-    <div class="form-group">
-        <label>Transaction Type:</label>
-        <select name="transaction_type">
-            <option value="INTRA">Intra State</option>
-            <option value="INTER">Inter State</option>
-        </select>
-    </div>  
-    <!-- In each of your calculator templates (calculate_tax.html, calculate_gst.html, forex_converter.html) -->
-    <div class="card">
-    <form method="post">
-        <!-- Your form fields -->
-        <button type="submit" class = "btn">Calculate</button>
+<style>
+    :root {
+        --primary-dark: #00296b;    /* Dark blue */
+        --primary: #003f88;         /* Medium blue */
+        --primary-light: #00509d;   /* Light blue */
+        --accent-dark: #fdc500;     /* Dark yellow */
+        --accent: #ffd500;          /* Light yellow */
+        --text-dark: #333333;
+        --text-light: #666666;
+        --background: #f5f5f5;
+        --white: #ffffff;
+    }
 
-        {% if not user.is_authenticated %}
-        <div class="login-prompt">
-            <p>Want to save your calculation history? <a href="{% url 'login' %}">Log in</a> or <a href="{% url 'register' %}">create an account</a>.</p>
+    .calculator-page {
+        padding: 5rem 2rem;
+        background: linear-gradient(135deg, var(--primary-light), var(--primary));
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .calculator-container {
+        max-width: 600px;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: 0 8px 32px rgba(0, 41, 107, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        animation: scaleIn 0.6s ease-out;
+    }
+
+    .section-title {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: var(--primary-dark);
+        position: relative;
+        font-size: 2rem;
+        font-weight: bold;
+    }
+
+    .section-title:after {
+        content: '';
+        position: absolute;
+        width: 50px;
+        height: 3px;
+        background: var(--accent-dark);
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.8rem;
+        color: var(--primary-dark);
+        font-weight: 500;
+        font-size: 1.1rem;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 1rem;
+        border: 2px solid rgba(0, 41, 107, 0.1);
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: var(--white);
+        color: var(--text-dark);
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(0, 41, 107, 0.1);
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        font-weight: 500;
+    }
+
+    .alert-danger {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+        border: 1px solid rgba(220, 53, 69, 0.2);
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        text-align: center;
+        font-size: 1.1rem;
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+
+    .btn-primary {
+        background-color: var(--primary);
+        color: var(--white);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 41, 107, 0.15);
+    }
+
+    .btn-secondary {
+        background-color: var(--accent-dark);
+        color: var(--text-dark);
+    }
+
+    .btn-secondary:hover {
+        background-color: var(--accent);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 213, 0, 0.2);
+    }
+
+    .login-prompt {
+        text-align: center;
+        margin-top: 1.5rem;
+        padding: 1rem;
+        background: rgba(0, 41, 107, 0.05);
+        border-radius: 8px;
+        color: var(--text-light);
+    }
+
+    .login-prompt a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .login-prompt a:hover {
+        color: var(--primary-dark);
+        text-decoration: underline;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+</style>
+
+<div class="calculator-page">
+    <div class="calculator-container">
+        <h2 class="section-title">
+            <i class="fas fa-percent"></i> GST Calculator
+        </h2>
+        
+        {% if error %}
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i> {{ error }}
         </div>
         {% endif %}
-    </form>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>
+                    <i class="fas fa-rupee-sign"></i> Base Amount:
+                </label>
+                <input type="number" name="base_amount" step="0.01" required 
+                       placeholder="Enter amount">
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <i class="fas fa-percentage"></i> GST Rate (%):
+                </label>
+                <select name="gst_rate">
+                    <option value="5">5%</option>
+                    <option value="12">12%</option>
+                    <option value="18">18%</option>
+                    <option value="28">28%</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <i class="fas fa-map-marker-alt"></i> Transaction Type:
+                </label>
+                <select name="transaction_type">
+                    <option value="INTRA">Intra State</option>
+                    <option value="INTER">Inter State</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-calculator"></i> Calculate GST
+            </button>
+
+            {% if not user.is_authenticated %}
+            <div class="login-prompt">
+                <p>Want to save your calculation history? 
+                    <a href="{% url 'login' %}">Log in</a> or 
+                    <a href="{% url 'register' %}">create an account</a>
+                </p>
+            </div>
+            {% endif %}
+        </form>
     </div>
-</form>
+</div>
 {% endblock %}

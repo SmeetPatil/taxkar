@@ -1,105 +1,300 @@
-<!-- templates/history/dashboard.html -->
 {% extends 'base.html' %}
 
 {% block title %}Calculation History - TaxKar{% endblock %}
 
 {% block content %}
-<div class="history-container">
-    <h1>Your Calculation History</h1>
+<style>
+    :root {
+        --primary-dark: #00296b;    /* Dark blue */
+        --primary: #003f88;         /* Medium blue */
+        --primary-light: #00509d;   /* Light blue */
+        --accent-dark: #fdc500;     /* Dark yellow */
+        --accent: #ffd500;          /* Light yellow */
+        --text-dark: #333333;
+        --text-light: #666666;
+        --background: #f5f5f5;
+        --white: #ffffff;
+    }
 
-    <!-- Tax Calculation History -->
-    <div class="history-section">
-        <h2>Income Tax Calculation History</h2>
-        {% if tax_history %}
-        <table class="history-table">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Income</th>
-                    <th>Regime</th>
-                    <th>Tax Amount</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for calc in tax_history %}
-                <tr>
-                    <td>{{ calc.calculation_date|date:"F j, Y" }}</td>
-                    <td>₹{{ calc.income }}</td>
-                    <td>{{ calc.regime|title }}</td>
-                    <td>₹{{ calc.tax_amount }}</td>
-                    <td><a href="{% url 'tax_history_detail' calc.id %}">View Details</a></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p>No tax calculations found.</p>
-        {% endif %}
-    </div>
+    .history-page {
+        padding: 5rem 2rem;
+        background-color: var(--background);
+        min-height: 80vh;
+        animation: fadeInUp 0.6s ease-out;
+    }
 
-    <!-- GST Calculation History -->
-    <div class="history-section">
-        <h2>GST Calculation History</h2>
-        {% if gst_history %}
-        <table class="history-table">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Amount</th>
-                    <th>GST Rate</th>
-                    <th>GST Amount</th>
-                    <th>Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for calc in gst_history %}
-                <tr>
-                    <td>{{ calc.calculation_date|date:"F j, Y" }}</td>
-                    <td>₹{{ calc.amount }}</td>
-                    <td>{{ calc.gst_rate }}%</td>
-                    <td>₹{{ calc.gst_amount }}</td>
-                    <td>₹{{ calc.total_amount }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p>No GST calculations found.</p>
-        {% endif %}
-    </div>
+    .section-title {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: var(--primary-dark);
+        position: relative;
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
 
-    <!-- Forex Conversion History -->
-    <div class="history-section">
-        <h2>Forex Conversion History</h2>
-        {% if forex_history %}
-        <table class="history-table">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>From</th>
-                    <th>To</th>
-                    <th>Amount</th>
-                    <th>Converted Amount</th>
-                    <th>Exchange Rate</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for conv in forex_history %}
-                <tr>
-                    <td>{{ conv.conversion_date|date:"F j, Y" }}</td>
-                    <td>{{ conv.from_currency }}</td>
-                    <td>{{ conv.to_currency }}</td>
-                    <td>{{ conv.amount }} {{ conv.from_currency }}</td>
-                    <td>{{ conv.converted_amount }} {{ conv.to_currency }}</td>
-                    <td>{{ conv.exchange_rate }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p>No forex conversions found.</p>
-        {% endif %}
+    .section-title:after {
+        content: '';
+        position: absolute;
+        width: 50px;
+        height: 3px;
+        background: var(--accent-dark);
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .history-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .history-section {
+        background: var(--white);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 41, 107, 0.1);
+        animation: scaleIn 0.6s ease-out;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .history-section h2 {
+        color: var(--primary);
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+        padding-bottom: 0.5rem;
+    }
+
+    .history-section h2:after {
+        content: '';
+        position: absolute;
+        width: 30px;
+        height: 2px;
+        background: var(--accent-dark);
+        bottom: 0;
+        left: 0;
+    }
+
+    .history-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+
+    .history-table thead tr {
+        background-color: rgba(0, 41, 107, 0.05);
+    }
+
+    .history-table th {
+        color: var(--primary-dark);
+        font-weight: 600;
+        text-align: left;
+        padding: 1rem;
+        border-bottom: 2px solid rgba(0, 41, 107, 0.1);
+    }
+
+    .history-table td {
+        padding: 1rem;
+        border-bottom: 1px solid rgba(0, 41, 107, 0.1);
+        color: var(--text-dark);
+    }
+
+    .history-table tbody tr:hover {
+        background-color: rgba(0, 41, 107, 0.02);
+    }
+
+    .history-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 0.6rem 1rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background-color: var(--primary);
+        color: var(--white);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 41, 107, 0.15);
+    }
+
+    .empty-message {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-light);
+        font-style: italic;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .history-page {
+            padding: 4rem 1rem;
+        }
+
+        .history-section {
+            padding: 1.5rem;
+        }
+
+        .history-table {
+            display: block;
+            overflow-x: auto;
+        }
+
+        .history-table th,
+        .history-table td {
+            padding: 0.75rem;
+        }
+    }
+</style>
+
+<div class="history-page">
+    <h1 class="section-title">Your Calculation History</h1>
+    
+    <div class="history-container">
+        <!-- Tax Calculation History -->
+        <div class="history-section">
+            <h2>
+                <i class="fas fa-calculator"></i>
+                Income Tax Calculation History
+            </h2>
+            {% if tax_history %}
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Income</th>
+                        <th>Regime</th>
+                        <th>Tax Amount</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for calc in tax_history %}
+                    <tr>
+                        <td>{{ calc.calculation_date|date:"F j, Y" }}</td>
+                        <td>₹{{ calc.income }}</td>
+                        <td>{{ calc.regime|title }}</td>
+                        <td>₹{{ calc.tax_amount }}</td>
+                        <td>
+                            <a href="{% url 'tax_history_detail' calc.id %}" class="btn btn-primary">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty-message">
+                <i class="fas fa-info-circle"></i> No tax calculations found.
+            </p>
+            {% endif %}
+        </div>
+
+        <!-- GST Calculation History -->
+        <div class="history-section">
+            <h2>
+                <i class="fas fa-percent"></i>
+                GST Calculation History
+            </h2>
+            {% if gst_history %}
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>GST Rate</th>
+                        <th>GST Amount</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for calc in gst_history %}
+                    <tr>
+                        <td>{{ calc.calculation_date|date:"F j, Y" }}</td>
+                        <td>₹{{ calc.amount }}</td>
+                        <td>{{ calc.gst_rate }}%</td>
+                        <td>₹{{ calc.gst_amount }}</td>
+                        <td>₹{{ calc.total_amount }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty-message">
+                <i class="fas fa-info-circle"></i> No GST calculations found.
+            </p>
+            {% endif %}
+        </div>
+
+        <!-- Forex Conversion History -->
+        <div class="history-section">
+            <h2>
+                <i class="fas fa-exchange-alt"></i>
+                Forex Conversion History
+            </h2>
+            {% if forex_history %}
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Amount</th>
+                        <th>Converted Amount</th>
+                        <th>Exchange Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for conv in forex_history %}
+                    <tr>
+                        <td>{{ conv.conversion_date|date:"F j, Y" }}</td>
+                        <td>{{ conv.from_currency }}</td>
+                        <td>{{ conv.to_currency }}</td>
+                        <td>{{ conv.amount }} {{ conv.from_currency }}</td>
+                        <td>{{ conv.converted_amount }} {{ conv.to_currency }}</td>
+                        <td>{{ conv.exchange_rate }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty-message">
+                <i class="fas fa-info-circle"></i> No forex conversions found.
+            </p>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endblock %}

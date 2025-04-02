@@ -3,48 +3,316 @@
 {% block title %}My Invoices{% endblock %}
 
 {% block content %}
-<div class="invoices-container">
-    <h2>My Calculations & Invoices</h2>
-    
-    <div class="filter-section">
-        <form method="get">
-            <select name="type">
-                <option value="all">All</option>
-                <option value="tax">Tax Calculations</option>
-                <option value="gst">GST Calculations</option>
-            </select>
-            <button type="submit" class="btn">Filter</button>
-        </form>
+<header>
+    <a href="{% url 'home' %}" class="logo">
+        <img src="{% static 'logo.png' %}" alt="TaxKar Logo" style="height: 40px;">
+        TaxKar
+    </a>
+    <nav>
+        <a href="{% url 'home' %}">Home</a>
+        <a href="#services">Services</a>
+        <a href="#calculators">Calculators</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+    </nav>
+    <div class="header-actions">
+        <a href="tel:+919999999999" class="phone-number">
+            <i class="fas fa-phone-alt"></i>
+            +91 999 999 9999
+        </a>
+        <a href="#consultation" class="consultation-btn">Free Consultation</a>
     </div>
+</header>
+<style>
+    /* Header styles */
+    header {
+        background: linear-gradient(to right, var(--primary-dark), var(--primary));
+        color: var(--white);
+        padding: 0.8rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: fixed;
+        width: 100%;
+        top: 0;
+        z-index: 1000;
+    }
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Type</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for invoice in invoices %}
-            <tr>
-                <td>{{ invoice.calculation_date|date:"d M Y" }}</td>
-                <td>{{ invoice.get_type_display }}</td>
-                <td>₹ {{ invoice.amount }}</td>
-                <td>{{ invoice.status }}</td>
-                <td>
-                    <a href="{% url 'invoice_detail' invoice.id %}" class="btn">View</a>
-                    <a href="{% url 'download_invoice' invoice.id %}" class="btn">Download</a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="5">No calculations found</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        text-decoration: none;
+        color: var(--white);
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    nav {
+        display: flex;
+        gap: 2rem;
+    }
+
+    nav a {
+        color: var(--white);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s ease;
+    }
+
+    nav a:hover {
+        color: var(--accent);
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .phone-number {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--white);
+        text-decoration: none;
+    }
+
+    .consultation-btn {
+        background-color: var(--accent-dark);
+        color: var(--text-dark);
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .consultation-btn:hover {
+        background-color: var(--accent);
+        transform: translateY(-2px);
+    }
+
+    /* Define color scheme to match home.html */
+    :root {
+        --primary-dark: #00296b;    /* Dark blue */
+        --primary: #003f88;         /* Medium blue */
+        --primary-light: #00509d;   /* Light blue */
+        --accent-dark: #fdc500;     /* Dark yellow */
+        --accent: #ffd500;          /* Light yellow */
+        --text-dark: #333333;
+        --text-light: #666666;
+        --background: #f5f5f5;
+        --white: #ffffff;
+    }
+
+    .invoices-page {
+        padding: 5rem 2rem;
+        background-color: var(--background);
+        min-height: 80vh;
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .section-title {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: var(--primary-dark);
+        position: relative;
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+
+    .section-title:after {
+        content: '';
+        position: absolute;
+        width: 50px;
+        height: 3px;
+        background: var(--accent-dark);
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .invoices-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: var(--white);
+        border-radius: 15px;
+        padding: 2.5rem;
+        box-shadow: 0 8px 32px rgba(0, 41, 107, 0.1);
+        animation: scaleIn 0.6s ease-out;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .filter-section {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+    }
+
+    .filter-section select {
+        padding: 0.8rem;
+        border: 1px solid rgba(0, 41, 107, 0.1);
+        border-radius: 4px;
+        color: var(--text-dark);
+        background-color: var(--white);
+        min-width: 200px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .filter-section select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(0, 41, 107, 0.1);
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+
+    .table thead tr {
+        background-color: rgba(0, 41, 107, 0.05);
+        color: var(--primary-dark);
+    }
+
+    .table th,
+    .table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid rgba(0, 41, 107, 0.1);
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(0, 41, 107, 0.02);
+    }
+
+    .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 0.6rem 1rem;
+        border: none;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        margin-right: 0.5rem;
+    }
+
+    .btn-primary {
+        background-color: var(--primary);
+        color: var(--white);
+    }
+
+    .btn-secondary {
+        background-color: var(--accent-dark);
+        color: var(--text-dark);
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 41, 107, 0.15);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--primary-dark);
+    }
+
+    .btn-secondary:hover {
+        background-color: var(--accent);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-light);
+    }
+
+    @media (max-width: 768px) {
+        .invoices-page {
+            padding: 4rem 1rem;
+        }
+
+        .invoices-container {
+            padding: 1.5rem;
+        }
+
+        .filter-section {
+            flex-direction: column;
+        }
+
+        .table {
+            display: block;
+            overflow-x: auto;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+    }
+</style>
+
+<div class="invoices-page">
+    <h2 class="section-title">My Calculations & Invoices</h2>
+    
+    <div class="invoices-container">
+        <div class="filter-section">
+            <form method="get">
+                <select name="type" onchange="this.form.submit()">
+                    <option value="all" {% if not request.GET.type or request.GET.type == 'all' %}selected{% endif %}>All Calculations</option>
+                    <option value="tax" {% if request.GET.type == 'tax' %}selected{% endif %}>Tax Calculations</option>
+                    <option value="gst" {% if request.GET.type == 'gst' %}selected{% endif %}>GST Calculations</option>
+                </select>
+            </form>
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for invoice in invoices %}
+                <tr>
+                    <td>{{ invoice.calculation_date|date:"d M Y" }}</td>
+                    <td>{{ invoice.get_type_display }}</td>
+                    <td>₹ {{ invoice.amount }}</td>
+                    <td>{{ invoice.status }}</td>
+                    <td>
+                        <a href="{% url 'invoice_detail' invoice.id %}" class="btn btn-primary">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                        <a href="{% url 'download_invoice' invoice.id %}" class="btn btn-secondary">
+                            <i class="fas fa-download"></i> Download
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="empty-state">
+                        <i class="fas fa-file-invoice fa-3x" style="color: var(--text-light); margin-bottom: 1rem;"></i>
+                        <p>No calculations found. Start by making a new calculation!</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}

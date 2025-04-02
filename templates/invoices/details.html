@@ -3,66 +3,380 @@
 {% block title %}Invoice Detail{% endblock %}
 
 {% block content %}
-<div class="invoice-detail">
-    <h2>Calculation Details</h2>
+<header>
+    <a href="{% url 'home' %}" class="logo">
+        <img src="{% static 'logo.png' %}" alt="TaxKar Logo" height="40">
+        TaxKar
+    </a>
     
-    <div class="invoice-header">
-        <div class="invoice-meta">
-            <p><strong>Date:</strong> {{ invoice.calculation_date|date:"d M Y" }}</p>
-            <p><strong>Reference ID:</strong> {{ invoice.id }}</p>
-            <p><strong>Type:</strong> {{ invoice.get_type_display }}</p>
+    <nav>
+        <a href="{% url 'home' %}">Home</a>
+        <a href="#services">Services</a>
+        <a href="{% url 'calculate_tax' %}">Calculators</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+    </nav>
+    
+    <div class="header-actions">
+        <a href="tel:+919999999999" class="phone-number">
+            <i class="fas fa-phone-alt"></i>
+            <span>+91 999 999 9999</span>
+        </a>
+        <a href="#consultation" class="consultation-btn">Free Consultation</a>
+    </div>
+</header>
+
+<style>
+    /* Define color scheme to match home.html */
+    :root {
+        --primary-dark: #00296b;    /* Dark blue */
+        --primary: #003f88;         /* Medium blue */
+        --primary-light: #00509d;   /* Light blue */
+        --accent-dark: #fdc500;     /* Dark yellow */
+        --accent: #ffd500;          /* Light yellow */
+        --text-dark: #333333;
+        --text-light: #666666;
+        --background: #f5f5f5;
+        --white: #ffffff;
+    }
+    
+    /* Header styles */
+    header {
+        background: linear-gradient(to right, var(--primary-dark), var(--primary));
+        color: var(--white);
+        padding: 0.8rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: fixed;
+        width: 100%;
+        top: 0;
+        z-index: 1000;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        text-decoration: none;
+        color: var(--white);
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    nav {
+        display: flex;
+        gap: 2rem;
+    }
+
+    nav a {
+        color: var(--white);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s ease;
+    }
+
+    nav a:hover {
+        color: var(--accent);
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .phone-number {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--white);
+        text-decoration: none;
+    }
+
+    .consultation-btn {
+        background-color: var(--accent-dark);
+        color: var(--text-dark);
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .consultation-btn:hover {
+        background-color: var(--accent);
+        transform: translateY(-2px);
+    }
+
+    /* Animation keyframes */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    /* Invoice detail page styles */
+    .invoice-detail-page {
+        padding: 5rem 2rem;
+        background-color: var(--background);
+        min-height: 80vh;
+        animation: fadeInUp 0.6s ease-out;
+    }
+    
+    .section-title {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: var(--primary-dark);
+        position: relative;
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+    
+    .section-title:after {
+        content: '';
+        position: absolute;
+        width: 50px;
+        height: 3px;
+        background: var(--accent-dark);
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .invoice-container {
+        background: var(--white);
+        border-radius: 15px;
+        padding: 2.5rem;
+        box-shadow: 0 8px 32px rgba(0, 41, 107, 0.1);
+        max-width: 800px;
+        margin: 0 auto;
+        animation: scaleIn 0.6s ease-out;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    
+    .invoice-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(0, 41, 107, 0.1);
+    }
+    
+    .invoice-meta {
+        flex: 1;
+    }
+    
+    .invoice-meta p {
+        margin-bottom: 0.5rem;
+        color: var(--text-dark);
+    }
+    
+    .calculation-details {
+        margin-bottom: 2rem;
+    }
+    
+    .calculation-details h3 {
+        color: var(--primary);
+        margin-bottom: 1.5rem;
+        font-size: 1.3rem;
+        position: relative;
+        padding-bottom: 0.5rem;
+    }
+    
+    .calculation-details h3:after {
+        content: '';
+        position: absolute;
+        width: 30px;
+        height: 2px;
+        background: var(--accent-dark);
+        bottom: 0;
+        left: 0;
+    }
+    
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 2rem;
+    }
+    
+    .table tr:nth-child(even) {
+        background-color: rgba(0, 41, 107, 0.03);
+    }
+    
+    .table tr:hover {
+        background-color: rgba(0, 41, 107, 0.05);
+    }
+    
+    .table td {
+        padding: 1rem;
+        border-bottom: 1px solid rgba(0, 41, 107, 0.1);
+    }
+    
+    .table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .table td:first-child {
+        font-weight: 500;
+        color: var(--primary-dark);
+        width: 40%;
+    }
+    
+    .table td:last-child {
+        text-align: right;
+        font-weight: 600;
+    }
+    
+    .invoice-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        justify-content: center;
+    }
+    
+    .btn {
+        display: inline-block;
+        padding: 0.8rem 1.5rem;
+        border: none;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+        background-color: var(--primary);
+        color: var(--white);
+    }
+    
+    .btn-secondary {
+        background-color: var(--accent-dark);
+        color: var(--text-dark);
+    }
+    
+    .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-primary:hover {
+        background-color: var(--primary-dark);
+    }
+    
+    .btn-secondary:hover {
+        background-color: var(--accent);
+    }
+    
+    @media (max-width: 768px) {
+        .invoice-container {
+            padding: 1.5rem;
+        }
+        
+        .invoice-header {
+            flex-direction: column;
+        }
+        
+        .invoice-meta {
+            margin-bottom: 1rem;
+        }
+        
+        .invoice-actions {
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+            text-align: center;
+        }
+    }
+</style>
+
+<div class="invoice-detail-page">
+    <h2 class="section-title">Calculation Details</h2>
+    
+    <div class="invoice-container">
+        <div class="invoice-header">
+            <div class="invoice-meta">
+                <p><strong>Date:</strong> {{ invoice.calculation_date|date:"d M Y" }}</p>
+                <p><strong>Reference ID:</strong> {{ invoice.id }}</p>
+                <p><strong>Type:</strong> {{ invoice.get_type_display }}</p>
+            </div>
         </div>
-    </div>
 
-    {% if invoice.type == 'TAX' %}
-    <div class="calculation-details">
-        <h3>Income Tax Calculation</h3>
-        <table class="table">
-            <tr>
-                <td>Gross Income</td>
-                <td>₹ {{ invoice.tax_calculation.gross_income }}</td>
-            </tr>
-            <tr>
-                <td>Regime</td>
-                <td>{{ invoice.tax_calculation.tax_regime }}</td>
-            </tr>
-            <tr>
-                <td>Total Deductions</td>
-                <td>₹ {{ invoice.tax_calculation.total_deductions }}</td>
-            </tr>
-            <tr>
-                <td>Net Tax</td>
-                <td>₹ {{ invoice.tax_calculation.calculated_tax }}</td>
-            </tr>
-        </table>
-    </div>
-    {% elif invoice.type == 'GST' %}
-    <div class="calculation-details">
-        <h3>GST Calculation</h3>
-        <table class="table">
-            <tr>
-                <td>Base Amount</td>
-                <td>₹ {{ invoice.gst_calculation.base_amount }}</td>
-            </tr>
-            <tr>
-                <td>GST Rate</td>
-                <td>{{ invoice.gst_calculation.gst_rate }}%</td>
-            </tr>
-            <tr>
-                <td>GST Amount</td>
-                <td>₹ {{ invoice.gst_calculation.calculated_gst }}</td>
-            </tr>
-            <tr>
-                <td>Total Amount</td>
-                <td>₹ {{ invoice.gst_calculation.total_amount }}</td>
-            </tr>
-        </table>
-    </div>
-    {% endif %}
+        {% if invoice.type == 'TAX' %}
+        <div class="calculation-details">
+            <h3>Income Tax Calculation</h3>
+            <table class="table">
+                <tr>
+                    <td>Gross Income</td>
+                    <td>₹ {{ invoice.tax_calculation.gross_income }}</td>
+                </tr>
+                <tr>
+                    <td>Regime</td>
+                    <td>{{ invoice.tax_calculation.tax_regime }}</td>
+                </tr>
+                <tr>
+                    <td>Total Deductions</td>
+                    <td>₹ {{ invoice.tax_calculation.total_deductions }}</td>
+                </tr>
+                <tr>
+                    <td>Net Tax</td>
+                    <td>₹ {{ invoice.tax_calculation.calculated_tax }}</td>
+                </tr>
+            </table>
+        </div>
+        {% elif invoice.type == 'GST' %}
+        <div class="calculation-details">
+            <h3>GST Calculation</h3>
+            <table class="table">
+                <tr>
+                    <td>Base Amount</td>
+                    <td>₹ {{ invoice.gst_calculation.base_amount }}</td>
+                </tr>
+                <tr>
+                    <td>GST Rate</td>
+                    <td>{{ invoice.gst_calculation.gst_rate }}%</td>
+                </tr>
+                <tr>
+                    <td>GST Amount</td>
+                    <td>₹ {{ invoice.gst_calculation.calculated_gst }}</td>
+                </tr>
+                <tr>
+                    <td>Total Amount</td>
+                    <td>₹ {{ invoice.gst_calculation.total_amount }}</td>
+                </tr>
+            </table>
+        </div>
+        {% endif %}
 
-    <div class="invoice-actions">
-        <a href="{% url 'download_invoice' invoice.id %}" class="btn">Download PDF</a>
-        <a href="{% url 'invoice_list' %}" class="btn">Back to List</a>
+        <div class="invoice-actions">
+            <a href="{% url 'download_invoice' invoice.id %}" class="btn btn-secondary">
+                <i class="fas fa-download"></i> Download PDF
+            </a>
+            <a href="{% url 'invoice_list' %}" class="btn btn-primary">
+                <i class="fas fa-arrow-left"></i> Back to List
+            </a>
+        </div>
     </div>
 </div>
 {% endblock %}
