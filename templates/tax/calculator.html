@@ -1,49 +1,562 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Income Tax Calculator{% endblock %}
 
 {% block content %}
-<h2>Income Tax Calculator</h2>
-<form method="post">
-    {% csrf_token %}
-    <div class="form-group">
-        <label>Gross Income:</label>
-        <input type="number" name="gross_income" required>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<header>
+    <div class="logo">
+        <img src="{% static 'images/logo.png' %}" alt="TaxKar Logo" style="height: 40px;">
     </div>
-    <div class="form-group">
-        <label>Tax Regime:</label>
-        <select name="regime">
-            <option value="NEW">New Regime</option>
-            <option value="OLD">Old Regime</option>
-        </select>
+    <nav>
+        <a href="{% url 'home' %}" class="nav-link">Home</a>
+        <a href="{% url 'services' %}" class="nav-link">Services</a>
+        <a href="{% url 'calculators' %}" class="nav-link active">Calculators</a>
+        <a href="{% url 'about' %}" class="nav-link">About</a>
+        <a href="{% url 'contact' %}" class="nav-link">Contact</a>
+    </nav>
+    <div class="header-actions">
+        <a href="tel:+919999999999" class="phone-number">
+            <i class="fas fa-phone-alt"></i>
+            +91 999 999 9999
+        </a>
+        <a href="{% url 'contact' %}" class="consultation-btn">Free Consultation</a>
     </div>
-    <h3>Deductions (Old Regime)</h3>
-    <div class="form-group">
-        <label>80C:</label>
-        <input type="number" name="80c" value="0">
-    </div>
-    <div class="form-group">
-        <label>HRA:</label>
-        <input type="number" name="hra" value="0">
-    </div>
-    <div class="form-group">
-        <label>Medical:</label>
-        <input type="number" name="medical" value="0">
-        <br><br>
-        <button type="submit" name="save" value="true" class="btn btn-primary">Save Calculation</button>
+</header>
+<style>
+    /* Header styles */
+    header {
+        background: linear-gradient(to right, var(--primary-dark), var(--primary));
+        color: var(--white);
+        padding: 0.8rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: fixed;
+        width: 100%;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        animation: slideInLeft 0.6s ease-out;
+    }
+
+    nav {
+        display: flex;
+        gap: 2rem;
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .nav-link {
+        color: var(--white);
+        text-decoration: none;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        animation: slideInRight 0.6s ease-out;
+    }
+
+    .phone-number {
+        color: var(--white);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .phone-number:hover {
+        color: var(--accent);
+    }
+
+    .consultation-btn {
+        background: var(--accent);
+        color: var(--primary-dark);
+        padding: 0.8rem 1.5rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .consultation-btn:hover {
+        background: var(--accent-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(253, 197, 0, 0.3);
+    }
+
+    @media (max-width: 1024px) {
+        nav {
+            display: none;
+        }
+
+        .header-actions {
+            gap: 1rem;
+        }
+
+        .phone-number span {
+            display: none;
+        }
+    }
+
+    /* Define color scheme to match home.html */
+    :root {
+        --primary-dark: #00296b;    /* Dark blue */
+        --primary: #003f88;         /* Medium blue */
+        --primary-light: #00509d;   /* Light blue */
+        --accent-dark: #fdc500;     /* Dark yellow */
+        --accent: #ffd500;          /* Light yellow */
+        --text-dark: #333333;
+        --text-light: #666666;
+        --background: #f5f5f5;
+        --white: #ffffff;
+        --glass: rgba(0, 41, 107, 0.1);
+    }
+    
+    /* Animation keyframes */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    /* Page styles */
+    .calculator-page {
+        animation: fadeInUp 0.6s ease-out;
+        padding: 2rem 0;
+        background-color: var(--background);
+        color: var(--text-dark);
+    }
+    
+    .section-title {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: var(--primary-dark);
+        position: relative;
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+    
+    .section-title:after {
+        content: '';
+        position: absolute;
+        width: 50px;
+        height: 3px;
+        background: var(--accent-dark);
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .calculator-intro {
+        text-align: center;
+        margin-bottom: 2rem;
+        font-size: 1.1rem;
+        color: var(--text-light);
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .calculator-card {
+        background: var(--white);
+        border-radius: 15px;
+        padding: 2.5rem;
+        box-shadow: 0 8px 32px rgba(0, 41, 107, 0.1);
+        max-width: 800px;
+        margin: 0 auto 3rem;
+        animation: scaleIn 0.6s ease-out;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        position: relative;
+    }
+    
+    .tax-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+    
+    .deductions-section {
+        grid-column: 1 / -1;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    .deductions-section h3 {
+        margin-bottom: 1.5rem;
+        color: var(--primary);
+        font-size: 1.3rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--text-dark);
+        font-weight: 500;
+    }
+    
+    .form-group input, 
+    .form-group select {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        color: var(--text-dark);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-group input:focus, 
+    .form-group select:focus {
+        outline: none;
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 2px rgba(0, 80, 157, 0.1);
+    }
+    
+    .input-hint {
+        display: block;
+        font-size: 0.8rem;
+        color: var(--text-light);
+        margin-top: 0.3rem;
+    }
+    
+    .button-group {
+        grid-column: 1 / -1;
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .calculate-btn, .save-btn {
+        padding: 0.8rem 1.5rem;
+        border: none;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .calculate-btn {
+        background-color: var(--primary);
+        color: var(--white);
+        flex: 1;
+    }
+    
+    .save-btn {
+        background-color: var(--accent-dark);
+        color: var(--text-dark);
+    }
+    
+    .calculate-btn:hover, .save-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .calculate-btn:hover {
+        background-color: var(--primary-dark);
+    }
+    
+    .save-btn:hover {
+        background-color: var(--accent);
+    }
+    
+    .login-prompt {
+        grid-column: 1 / -1;
+        margin-top: 1.5rem;
+        padding: 1rem;
+        background: rgba(0, 41, 107, 0.05);
+        border-radius: 4px;
+        text-align: center;
+        color: var(--text-dark);
+    }
+    
+    .login-prompt a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .login-prompt a:hover {
+        color: var(--primary-dark);
+        text-decoration: underline;
+    }
+    
+    .result-container {
+        background: var(--white);
+        border-radius: 15px;
+        padding: 2.5rem;
+        box-shadow: 0 8px 32px rgba(0, 41, 107, 0.1);
+        max-width: 800px;
+        margin: 0 auto;
+        display: none;
+        animation: fadeInUp 0.6s ease-out;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    
+    .result-container.show {
+        display: block;
+    }
+    
+    .result-container h3 {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: var(--primary);
+        font-size: 1.5rem;
+        position: relative;
+    }
+    
+    .result-container h3:after {
+        content: '';
+        position: absolute;
+        width: 40px;
+        height: 2px;
+        background: var(--accent-dark);
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .result-content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .result-card {
+        background: rgba(0, 41, 107, 0.03);
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 1px solid rgba(0, 41, 107, 0.1);
+    }
+    
+    .result-card h4 {
+        color: var(--primary);
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+        text-align: center;
+    }
+    
+    .recommendation {
+        grid-column: 1 / -1;
+        background: linear-gradient(135deg, rgba(253, 197, 0, 0.1), rgba(255, 213, 0, 0.1));
+        padding: 1.5rem;
+        border-radius: 8px;
+        text-align: center;
+        border: 1px solid rgba(253, 197, 0, 0.2);
+    }
+    
+    .recommendation h4 {
+        color: var(--primary-dark);
+        margin-bottom: 1rem;
+    }
+    
+    /* Loading animation */
+    .loading {
+        position: relative;
+    }
+    
+    .loading::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+    }
+    
+    .loading::before {
+        content: 'Calculating...';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: var(--primary);
+        font-weight: bold;
+        z-index: 11;
+    }
+    
+    @media (max-width: 768px) {
+        .tax-form {
+            grid-template-columns: 1fr;
+        }
+        
+        .button-group {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="calculator-page">
+    <h2 class="section-title">Income Tax Calculator</h2>
+    <p class="calculator-intro">Calculate your income tax liability under both old and new tax regimes to find the most beneficial option for you.</p>
+    
+    <div class="calculator-card">
+        <form method="post" class="tax-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="gross_income">Gross Income:</label>
+                <input type="number" id="gross_income" name="gross_income" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="regime">Tax Regime:</label>
+                <select id="regime" name="regime">
+                    <option value="NEW">New Regime</option>
+                    <option value="OLD">Old Regime</option>
+                    <option value="BOTH">Compare Both</option>
+                </select>
+            </div>
+            
+            <div class="deductions-section">
+                <h3>Deductions (Old Regime)</h3>
+                <div class="form-group">
+                    <label for="80c">80C Investments:</label>
+                    <input type="number" id="80c" name="80c" value="0">
+                    <span class="input-hint">Max ₹1,50,000</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="hra">House Rent Allowance:</label>
+                    <input type="number" id="hra" name="hra" value="0">
+                </div>
+                
+                <div class="form-group">
+                    <label for="medical">Medical Insurance Premium:</label>
+                    <input type="number" id="medical" name="medical" value="0">
+                    <span class="input-hint">Max ₹25,000</span>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button type="submit" class="calculate-btn">Calculate Tax</button>
+                {% if user.is_authenticated %}
+                    <button type="submit" name="save" value="true" class="save-btn">Save Calculation</button>
+                {% endif %}
+            </div>
+
+            {% if not user.is_authenticated %}
+            <div class="login-prompt">
+                <p>Want to save your calculation history? <a href="{% url 'login' %}">Log in</a> or <a href="{% url 'register' %}">create an account</a>.</p>
+            </div>
+            {% endif %}
+        </form>
     </div>
 
-    <div class="card">
-    <form method="post">
-        <!-- Your form fields -->
-        <button type="submit" class="btn">Calculate</button>
-
-        {% if not user.is_authenticated %}
-        <div class="login-prompt">
-            <p>Want to save your calculation history? <a href="{% url 'login' %}">Log in</a> or <a href="{% url 'register' %}">create an account</a>.</p>
+    {% if result %}
+    <div class="result-container show" id="tax-result">
+        <h3>Tax Calculation Results</h3>
+        <div class="result-content">
+            {% if regime == 'OLD' or regime == 'BOTH' %}
+            <div class="result-card">
+                <h4>Old Tax Regime</h4>
+                <p><strong>Gross Income:</strong> ₹{{ income|floatformat:2 }}</p>
+                <p><strong>Taxable Income:</strong> ₹{{ taxable_income_old|floatformat:2 }}</p>
+                <p><strong>Tax Amount:</strong> ₹{{ tax_old|floatformat:2 }}</p>
+            </div>
+            {% endif %}
+            
+            {% if regime == 'NEW' or regime == 'BOTH' %}
+            <div class="result-card">
+                <h4>New Tax Regime</h4>
+                <p><strong>Gross Income:</strong> ₹{{ income|floatformat:2 }}</p>
+                <p><strong>Taxable Income:</strong> ₹{{ taxable_income_new|floatformat:2 }}</p>
+                <p><strong>Tax Amount:</strong> ₹{{ tax_new|floatformat:2 }}</p>
+            </div>
+            {% endif %}
+            
+            {% if regime == 'BOTH' %}
+            <div class="recommendation">
+                <h4>Recommendation</h4>
+                <p>Based on your inputs, the <strong>{{ recommended_regime }}</strong> is more beneficial for you.</p>
+                <p>You can save ₹{{ tax_saving|floatformat:2 }} by choosing this regime.</p>
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
-    </form>
     </div>
-</form>
+    {% endif %}
+</div>
+
+<script>
+    // Show/hide deductions based on regime selection
+    document.addEventListener('DOMContentLoaded', function() {
+        const regimeSelect = document.getElementById('regime');
+        const deductionsSection = document.querySelector('.deductions-section');
+        
+        function toggleDeductions() {
+            if (regimeSelect.value === 'NEW') {
+                deductionsSection.style.display = 'none';
+            } else {
+                deductionsSection.style.display = 'block';
+            }
+        }
+        
+        regimeSelect.addEventListener('change', toggleDeductions);
+        toggleDeductions(); // Initial state
+        
+        // Add animation to form submission
+        const form = document.querySelector('.tax-form');
+        form.addEventListener('submit', function() {
+            const calculatorCard = document.querySelector('.calculator-card');
+            calculatorCard.classList.add('loading');
+            
+            setTimeout(() => {
+                calculatorCard.classList.remove('loading');
+            }, 1000);
+        });
+    });
+</script>
 {% endblock %}

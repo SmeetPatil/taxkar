@@ -3,35 +3,226 @@
 {% block title %}GST Calculation Result{% endblock %}
 
 {% block content %}
-<h2>GST Calculation Results</h2>
-<div class="result-container">
-    <table class="table">
-        <tr>
-            <th>Description</th>
-            <th>Amount</th>
-        </tr>
-        <tr>
-            <td>GST Amount</td>
-            <td>₹ {{ gst }}</td>
-        </tr>
-        <tr>
-            <td>Total Amount (Including GST)</td>
-            <td>₹ {{ total }}</td>
-        </tr>
-    </table>
-    {% if user.is_authenticated %}
-    <a href="#" class="btn" onclick="window.print()">Download PDF</a>
-    {% endif %}
-    <a href="{% url 'calculate_gst' %}" class="btn">Calculate Another</a>
-    <br>
-    <br>
-    <form method="post" action="{% url 'calculate_gst' %}">
-        {% csrf_token %}
-        <input type="hidden" name="base_amount" value="{{ base_amount }}">
-        <input type="hidden" name="gst_rate" value="{{ gst_rate }}">
-        <input type="hidden" name="transaction_type" value="{{ transaction_type }}">
-        <input type="hidden" name="save" value="true">
-        <button type="submit" class="btn btn-primary">Save Calculation</button>
-    </form>
+<style>
+    :root {
+        --primary-dark: #00296b;    /* Dark blue */
+        --primary: #003f88;         /* Medium blue */
+        --primary-light: #00509d;   /* Light blue */
+        --accent-dark: #fdc500;     /* Dark yellow */
+        --accent: #ffd500;          /* Light yellow */
+        --text-dark: #333333;
+        --text-light: #666666;
+        --background: #f5f5f5;
+        --white: #ffffff;
+    }
+
+    .result-page {
+        padding: 5rem 2rem;
+        background: linear-gradient(135deg, var(--primary-light), var(--primary));
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .result-container {
+        max-width: 800px;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: 0 8px 32px rgba(0, 41, 107, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        animation: scaleIn 0.6s ease-out;
+    }
+
+    .section-title {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: var(--primary-dark);
+        position: relative;
+        font-size: 2rem;
+        font-weight: bold;
+    }
+
+    .section-title:after {
+        content: '';
+        position: absolute;
+        width: 50px;
+        height: 3px;
+        background: var(--accent-dark);
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 2rem 0;
+        background: var(--white);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .table th {
+        background-color: var(--primary);
+        color: var(--white);
+        padding: 1.2rem;
+        text-align: left;
+        font-weight: 600;
+    }
+
+    .table td {
+        padding: 1.2rem;
+        border-bottom: 1px solid rgba(0, 41, 107, 0.1);
+        color: var(--text-dark);
+    }
+
+    .table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .table tr:nth-child(even) {
+        background-color: rgba(0, 41, 107, 0.02);
+    }
+
+    .btn-container {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .btn {
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 200px;
+        justify-content: center;
+    }
+
+    .btn-primary {
+        background-color: var(--primary);
+        color: var(--white);
+    }
+
+    .btn-secondary {
+        background-color: var(--accent-dark);
+        color: var(--text-dark);
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 41, 107, 0.15);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--primary-dark);
+    }
+
+    .btn-secondary:hover {
+        background-color: var(--accent);
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .result-page {
+            padding: 4rem 1rem;
+        }
+
+        .result-container {
+            padding: 1.5rem;
+        }
+
+        .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="result-page">
+    <div class="result-container">
+        <h2 class="section-title">
+            <i class="fas fa-calculator"></i> GST Calculation Results
+        </h2>
+        
+        <table class="table">
+            <tr>
+                <th>Description</th>
+                <th>Amount</th>
+            </tr>
+            <tr>
+                <td>Base Amount</td>
+                <td>₹ {{ base_amount }}</td>
+            </tr>
+            <tr>
+                <td>GST Rate</td>
+                <td>{{ gst_rate }}%</td>
+            </tr>
+            <tr>
+                <td>GST Amount</td>
+                <td>₹ {{ gst }}</td>
+            </tr>
+            <tr>
+                <td>Total Amount (Including GST)</td>
+                <td>₹ {{ total }}</td>
+            </tr>
+        </table>
+
+        <div class="btn-container">
+            {% if user.is_authenticated %}
+            <button onclick="window.print()" class="btn btn-secondary">
+                <i class="fas fa-download"></i> Download PDF
+            </button>
+            {% endif %}
+            
+            <a href="{% url 'calculate_gst' %}" class="btn btn-primary">
+                <i class="fas fa-calculator"></i> Calculate Another
+            </a>
+
+            <form method="post" action="{% url 'calculate_gst' %}" style="display: inline;">
+                {% csrf_token %}
+                <input type="hidden" name="base_amount" value="{{ base_amount }}">
+                <input type="hidden" name="gst_rate" value="{{ gst_rate }}">
+                <input type="hidden" name="transaction_type" value="{{ transaction_type }}">
+                <input type="hidden" name="save" value="true">
+                <button type="submit" class="btn btn-secondary">
+                    <i class="fas fa-save"></i> Save Calculation
+                </button>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}

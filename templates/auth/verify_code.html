@@ -1,15 +1,264 @@
 {% extends "base.html" %}
 
+{% block title %}Verify Phone - TaxKar{% endblock %}
+
 {% block content %}
-<div class="container">
-    <h2>Verify Phone Number</h2>
-    <form method="post">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="code">Enter verification code sent to your phone</label>
-            <input type="text" class="form-control" id="code" name="code" required>
+<header>
+    <a href="{% url 'home' %}" class="logo">
+        <img src="{% static 'logo.png' %}" alt="TaxKar Logo">
+        TaxKar
+    </a>
+    <nav>
+        <a href="{% url 'home' %}">Home</a>
+        <a href="{% url 'services' %}">Services</a>
+        <a href="{% url 'calculators' %}">Calculators</a>
+        <a href="{% url 'about' %}">About</a>
+        <a href="{% url 'contact' %}">Contact</a>
+    </nav>
+    <div class="contact-info">
+        <span class="phone-number"><i class="fas fa-phone"></i> +91 999 999 9999</span>
+        <a href="{% url 'consultation' %}" class="consultation-btn">Free Consultation</a>
+    </div>
+</header>
+<style>
+    /* Header styles */
+    header {
+        background: linear-gradient(to right, var(--primary-dark), var(--primary));
+        color: var(--white);
+        padding: 0.8rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: fixed;
+        width: 100%;
+        top: 0;
+        z-index: 1000;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        color: var(--white);
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    .logo img {
+        height: 40px;
+        margin-right: 10px;
+    }
+
+    nav {
+        display: flex;
+        gap: 2rem;
+    }
+
+    nav a {
+        color: var(--white);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s ease;
+    }
+
+    nav a:hover {
+        color: var(--accent);
+    }
+
+    .contact-info {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .phone-number {
+        font-weight: 500;
+    }
+
+    .consultation-btn {
+        background: var(--accent);
+        color: var(--primary-dark);
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .consultation-btn:hover {
+        background: var(--accent-dark);
+        transform: translateY(-2px);
+    }
+
+    :root {
+        --primary-dark: #00296b;    /* Dark blue */
+        --primary: #003f88;         /* Medium blue */
+        --primary-light: #00509d;   /* Light blue */
+        --accent-dark: #fdc500;     /* Dark yellow */
+        --accent: #ffd500;          /* Light yellow */
+        --text-dark: #333333;
+        --text-light: #666666;
+        --background: #f5f5f5;
+        --white: #ffffff;
+    }
+
+    .verify-page {
+        padding: 5rem 2rem;
+        background: linear-gradient(135deg, var(--primary-light), var(--primary));
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .verify-container {
+        max-width: 400px;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: 0 8px 32px rgba(0, 41, 107, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        animation: scaleIn 0.6s ease-out;
+    }
+
+    .section-title {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: var(--primary-dark);
+        position: relative;
+        font-size: 2rem;
+        font-weight: bold;
+    }
+
+    .section-title:after {
+        content: '';
+        position: absolute;
+        width: 50px;
+        height: 3px;
+        background: var(--accent-dark);
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        color: var(--primary-dark);
+        margin-bottom: 0.8rem;
+        font-weight: 500;
+        font-size: 1.1rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 1rem;
+        border: 2px solid rgba(0, 41, 107, 0.1);
+        border-radius: 8px;
+        font-size: 1.2rem;
+        letter-spacing: 0.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        background: var(--white);
+        color: var(--text-dark);
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(0, 41, 107, 0.1);
+    }
+
+    .btn {
+        width: 100%;
+        padding: 1rem;
+        background: var(--primary);
+        color: var(--white);
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 41, 107, 0.15);
+    }
+
+    .verification-info {
+        text-align: center;
+        margin-top: 1.5rem;
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+</style>
+
+<div class="verify-page">
+    <div class="verify-container">
+        <h2 class="section-title">
+            <i class="fas fa-shield-alt"></i> Verify Phone
+        </h2>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="code">
+                    <i class="fas fa-key"></i> Enter verification code
+                </label>
+                <input type="text" 
+                       class="form-control" 
+                       id="code" 
+                       name="code" 
+                       maxlength="6" 
+                       pattern="\d{6}"
+                       placeholder="• • • • • •"
+                       required>
+            </div>
+            <button type="submit" class="btn">
+                <i class="fas fa-check-circle"></i> Verify Code
+            </button>
+        </form>
+
+        <div class="verification-info">
+            <p>A 6-digit verification code has been sent to your phone</p>
+            <p>The code will expire in 10 minutes</p>
         </div>
-        <button type="submit" class="btn btn-primary">Verify</button>
-    </form>
+    </div>
 </div>
 {% endblock %}

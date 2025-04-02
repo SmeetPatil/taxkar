@@ -3,35 +3,326 @@
 {% block title %}Tax Calculation Result{% endblock %}
 
 {% block content %}
-<h2>Tax Calculation Results</h2>
-<div class="result-container">
-    <table class="table">
-        <tr>
-            <th>Description</th>
-            <th>Amount</th>
-        </tr>
-        <tr>
-            <td>Total Tax Payable</td>
-            <td>₹ {{ tax }}</td>
-        </tr>
-        {% for key, value in deductions.items %}
-        <tr>
-            <td>{{ key }} Deduction</td>
-            <td>₹ {{ value }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-    {% if user.is_authenticated %}
-    <a href="#" class="btn" onclick="window.print()">Download PDF</a>
-    {% endif %}
-    <a href="{% url 'calculate_tax' %}" class="btn">Calculate Another</a>
-    <br>
-    <br>
-    <br>
-    <form method="post">
-        {% csrf_token %}
-        <input type="hidden" name="save" value="true">
-        <button type="submit" class="btn btn-primary">Save Calculation</button>
-    </form>
+<header>
+    <a href="{% url 'home' %}" class="logo">
+        <img src="{% static 'logo.png' %}" alt="TaxKar Logo" height="40">
+        TaxKar
+    </a>
+    
+    <nav>
+        <a href="{% url 'home' %}">Home</a>
+        <a href="#services">Services</a>
+        <a href="{% url 'calculate_tax' %}">Calculators</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+    </nav>
+    
+    <div class="header-actions">
+        <a href="tel:+919999999999" class="phone-number">
+            <i class="fas fa-phone-alt"></i>
+            <span>+91 999 999 9999</span>
+        </a>
+        <a href="#consultation" class="consultation-btn">Free Consultation</a>
+    </div>
+</header>
+
+<style>
+    /* Header styles */
+    header {
+        background: linear-gradient(to right, var(--primary-dark), var(--primary));
+        color: var(--white);
+        padding: 0.8rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: fixed;
+        width: 100%;
+        top: 0;
+        z-index: 1000;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        text-decoration: none;
+        color: var(--white);
+        font-size: 1.5rem;
+        font-weight: bold;
+        animation: slideIn 0.5s ease-out;
+    }
+
+    nav {
+        display: flex;
+        gap: 2rem;
+    }
+
+    nav a {
+        color: var(--white);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s ease;
+    }
+
+    nav a:hover {
+        color: var(--accent);
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    .phone-number {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--white);
+        text-decoration: none;
+    }
+
+    .consultation-btn {
+        background-color: var(--accent-dark);
+        color: var(--text-dark);
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .consultation-btn:hover {
+        background-color: var(--accent);
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 1024px) {
+        nav {
+            display: none;
+        }
+
+        .header-actions {
+            gap: 1rem;
+        }
+
+        .phone-number span {
+            display: none;
+        }
+    }
+
+    /* Define color scheme to match home.html */
+    :root {
+        --primary-dark: #00296b;    /* Dark blue */
+        --primary: #003f88;         /* Medium blue */
+        --primary-light: #00509d;   /* Light blue */
+        --accent-dark: #fdc500;     /* Dark yellow */
+        --accent: #ffd500;          /* Light yellow */
+        --text-dark: #333333;
+        --text-light: #666666;
+        --background: #f5f5f5;
+        --white: #ffffff;
+    }
+    
+    /* Animation keyframes */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    /* Result page styles */
+    .result-page {
+        padding: 5rem 2rem;
+        background-color: var(--background);
+        min-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        animation: fadeInUp 0.6s ease-out;
+    }
+    
+    .section-title {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: var(--primary-dark);
+        position: relative;
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+    
+    .section-title:after {
+        content: '';
+        position: absolute;
+        width: 50px;
+        height: 3px;
+        background: var(--accent-dark);
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .result-container {
+        background: var(--white);
+        border-radius: 15px;
+        padding: 2.5rem;
+        box-shadow: 0 8px 32px rgba(0, 41, 107, 0.1);
+        max-width: 800px;
+        width: 100%;
+        margin: 0 auto;
+        animation: scaleIn 0.6s ease-out;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 2rem;
+    }
+    
+    .table th, .table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid rgba(0, 41, 107, 0.1);
+    }
+    
+    .table th {
+        background-color: rgba(0, 41, 107, 0.05);
+        color: var(--primary-dark);
+        font-weight: 600;
+    }
+    
+    .table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .table tr:hover {
+        background-color: rgba(0, 41, 107, 0.02);
+    }
+    
+    .btn {
+        display: inline-block;
+        padding: 0.8rem 1.5rem;
+        border: none;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        margin-right: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .btn-primary {
+        background-color: var(--primary);
+        color: var(--white);
+    }
+    
+    .btn-secondary {
+        background-color: var(--accent-dark);
+        color: var(--text-dark);
+    }
+    
+    .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-primary:hover {
+        background-color: var(--primary-dark);
+    }
+    
+    .btn-secondary:hover {
+        background-color: var(--accent);
+    }
+    
+    .action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 1.5rem;
+    }
+    
+    @media (max-width: 768px) {
+        .result-container {
+            padding: 1.5rem;
+        }
+        
+        .table th, .table td {
+            padding: 0.75rem;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+            margin-right: 0;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+    }
+</style>
+
+<div class="result-page">
+    <h2 class="section-title">Tax Calculation Results</h2>
+    
+    <div class="result-container">
+        <table class="table">
+            <tr>
+                <th>Description</th>
+                <th>Amount</th>
+            </tr>
+            <tr>
+                <td>Total Tax Payable</td>
+                <td>₹ {{ tax }}</td>
+            </tr>
+            {% for key, value in deductions.items %}
+            <tr>
+                <td>{{ key }} Deduction</td>
+                <td>₹ {{ value }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        
+        <div class="action-buttons">
+            {% if user.is_authenticated %}
+            <a href="#" class="btn btn-secondary" onclick="window.print()">
+                <i class="fas fa-download"></i> Download PDF
+            </a>
+            
+            <form method="post" style="display: inline;">
+                {% csrf_token %}
+                <input type="hidden" name="save" value="true">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Calculation
+                </button>
+            </form>
+            {% endif %}
+            
+            <a href="{% url 'calculate_tax' %}" class="btn btn-primary">
+                <i class="fas fa-calculator"></i> Calculate Another
+            </a>
+        </div>
+    </div>
 </div>
 {% endblock %}
