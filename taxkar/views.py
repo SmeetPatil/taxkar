@@ -18,11 +18,8 @@ def home(request):
     return render(request, 'home.html')
 
 
-# Remove @login_required decorator from calculate_tax function
+@login_required
 def calculate_tax(request):
-    """Calculate income tax based on user input"""
-    context = {}
-    
     if request.method == 'POST':
         gross_income = Decimal(request.POST.get('gross_income', 0))
         regime = request.POST.get('regime', 'NEW')
@@ -32,8 +29,8 @@ def calculate_tax(request):
             'medical': Decimal(request.POST.get('medical', 0))
         }
 
-        # Calculate tax with detailed breakdown
-        tax_details = calculate_income_tax(gross_income, deductions, regime)
+        # Basic tax calculation logic (to be expanded)
+        tax = calculate_income_tax(gross_income, deductions, regime)
         
         if request.POST.get('save') and request.user.is_authenticated:
             # Convert Decimal objects to strings for JSON serialization
@@ -45,49 +42,30 @@ def calculate_tax(request):
             TaxCalculation.objects.create(
                 user=request.user,
                 gross_income=gross_income,
-                deductions=serializable_deductions,
+                deductions=serializable_deductions,  # Use the serializable version
                 tax_regime=regime,
-                calculated_tax=tax_details['tax'],
+                calculated_tax=tax,
                 financial_year=f"{datetime.now().year}-{str(datetime.now().year + 1)[2:]}"
             )
             
-            # Save to history with detailed breakdown
+            # Save to history
             TaxCalculationHistory.objects.create(
                 user=request.user,
                 income=gross_income,
                 regime=regime,
-                tax_amount=tax_details['tax'],
+                tax_amount=tax,
                 details={
-                    'deductions': serializable_deductions,
-                    'tax_slabs': tax_details['tax_slabs'],
-                    'surcharge': str(tax_details['surcharge']),
-                    'surcharge_rate': tax_details['surcharge_rate'],
-                    'cess': str(tax_details['cess']),
+                    'deductions': serializable_deductions,  # Use the serializable version
                     'financial_year': f"{datetime.now().year}-{str(datetime.now().year + 1)[2:]}"
                 }
             )
 
-        # Pass all tax calculation details to template
-        context = {
-            'tax': tax_details['tax'],
-            'tax_slabs': tax_details['tax_slabs'],
-            'surcharge': tax_details['surcharge'],
-            'surcharge_rate': tax_details['surcharge_rate'],
-            'cess': tax_details['cess'],
-            'deductions': deductions,
-            'gross_income': gross_income,
-            'regime': regime,
-            'total_deductions': sum(deductions.values()) if regime == 'OLD' else Decimal('0')
-        }
-        return render(request, 'tax/result.html', context)
+        return render(request, 'tax/result.html', {'tax': tax, 'deductions': deductions})
 
     return render(request, 'tax/calculator.html')
 
-# Remove @login_required decorator from calculate_gst function
+@login_required
 def calculate_gst(request):
-    """Calculate GST based on user input"""
-    context = {}
-    
     if request.method == 'POST':
         try:
             # Get and validate base_amount
@@ -96,32 +74,15 @@ def calculate_gst(request):
                 base_amount = '0'
             base_amount = Decimal(base_amount)
 
-            # Get category and commodity
-            category = request.POST.get('category', '')
-            commodity = request.POST.get('commodity', '')
-            
-            # Get GST rate from category
-            category_rate_map = {
-                'essential': 0,
-                'food_5': 5, 'household_5': 5, 'auto_5': 5, 'clothing_5': 5,
-                'food_12': 12, 'household_12': 12, 'auto_12': 12, 'electronics_12': 12, 'jewelry_12': 12,
-                'food_18': 18, 'household_18': 18, 'auto_18': 18, 'electronics_18': 18,
-                'food_28': 28, 'household_28': 28, 'auto_28': 28, 'electronics_28': 28,
-                'jewelry_3': 3
-            }
-            
-            gst_rate = Decimal(str(category_rate_map.get(category, 0)))
+            # Get and validate gst_rate
+            gst_rate = request.POST.get('gst_rate', '0')
+            if not gst_rate or not gst_rate.replace('.', '').isdigit():
+                gst_rate = '0'
+            gst_rate = Decimal(gst_rate)
+
             transaction_type = request.POST.get('transaction_type', 'INTRA')
 
-            # Calculate GST based on transaction type
-            if transaction_type == 'INTRA':
-                # For intra-state, split into CGST and SGST
-                single_gst = (base_amount * (gst_rate / 2)) / 100
-                calculated_gst = single_gst * 2  # Total GST (CGST + SGST)
-            else:
-                # For inter-state, calculate IGST
-                calculated_gst = (base_amount * gst_rate) / 100
-
+            calculated_gst = (base_amount * gst_rate) / 100
             total_amount = base_amount + calculated_gst
 
             if request.POST.get('save') and request.user.is_authenticated:
@@ -145,19 +106,12 @@ def calculate_gst(request):
                 
                 return redirect('history_dashboard')
 
-            # Get category display name
-            category_display = category.replace('_', ' ').title() if category else ''
-            if '_' in category_display:
-                category_display = ' '.join(category_display.split()[:-1])  # Remove the rate number
-
             return render(request, 'gst/result.html', {
-                'gst': calculated_gst / 2 if transaction_type == 'INTRA' else calculated_gst,  # For display purposes
+                'gst': calculated_gst,
                 'total': total_amount,
                 'base_amount': base_amount,
-                'gst_rate': gst_rate / 2 if transaction_type == 'INTRA' else gst_rate,  # For display purposes
-                'transaction_type': transaction_type,
-                'category': category_display,
-                'commodity': commodity
+                'gst_rate': gst_rate,
+                'transaction_type': transaction_type
             })
 
         except (ValueError, InvalidOperation) as e:
@@ -182,131 +136,11 @@ def forex_converter(request):
 
 
 def calculate_income_tax(gross_income, deductions, regime):
-    # Calculate taxable income
-    taxable_income = gross_income
-    if regime == 'OLD':
-        # Apply deductions for old regime
-        total_deductions = sum(deductions.values())
-        taxable_income = max(0, gross_income - total_deductions)
-    
-    # Initialize tax calculation variables
-    tax = Decimal('0')
-    tax_slabs = []
-    
-    if regime == 'NEW':
-        # New Tax Regime Slabs FY 2023-24
-        remaining = taxable_income
-        tax = Decimal('0')
-
-        # Define all slabs
-        slabs = [
-            (Decimal('300000'), '₹0 - ₹3,00,000', Decimal('0')),
-            (Decimal('300000'), '₹3,00,001 - ₹6,00,000', Decimal('0.05')),
-            (Decimal('300000'), '₹6,00,001 - ₹9,00,000', Decimal('0.10')),
-            (Decimal('300000'), '₹9,00,001 - ₹12,00,000', Decimal('0.15')),
-            (Decimal('300000'), '₹12,00,001 - ₹15,00,000', Decimal('0.20')),
-            (None, 'Above ₹15,00,000', Decimal('0.30'))
-        ]
-
-        # Find the starting slab based on income
-        cumulative_amount = Decimal('0')
-        for i, (amount, _, _) in enumerate(slabs[:-1]):
-            if cumulative_amount + amount >= taxable_income:
-                break
-            cumulative_amount += amount
-
-        # Calculate tax only for applicable slabs
-        for amount, label, rate in slabs:
-            if remaining <= 0:
-                break
-                
-            if amount is None:  # Final slab
-                if remaining > 0:
-                    slab_tax = remaining * rate
-                    tax += slab_tax
-                    if rate > 0:  # Only show slabs with actual tax
-                        tax_slabs.append({'range': f'{label} @ {int(rate * 100)}%', 'tax': str(slab_tax)})
-                break
-            
-            slab_amount = min(remaining, amount)
-            if slab_amount > 0:
-                slab_tax = slab_amount * rate
-                tax += slab_tax
-                if rate > 0:  # Only show slabs with actual tax
-                    tax_slabs.append({'range': f'{label} @ {int(rate * 100)}%', 'tax': str(slab_tax)})
-                remaining -= slab_amount
-    
-    else:  # Old Tax Regime
-        remaining = taxable_income
-        tax = Decimal('0')
-
-        # Define all slabs
-        slabs = [
-            (Decimal('250000'), '₹0 - ₹2,50,000', Decimal('0')),
-            (Decimal('250000'), '₹2,50,001 - ₹5,00,000', Decimal('0.05')),
-            (Decimal('250000'), '₹5,00,001 - ₹7,50,000', Decimal('0.20')),
-            (Decimal('250000'), '₹7,50,001 - ₹10,00,000', Decimal('0.20')),
-            (Decimal('250000'), '₹10,00,001 - ₹12,50,000', Decimal('0.30')),
-            (None, 'Above ₹12,50,000', Decimal('0.30'))
-        ]
-
-        # Find the starting slab based on income
-        cumulative_amount = Decimal('0')
-        for i, (amount, _, _) in enumerate(slabs[:-1]):
-            if cumulative_amount + amount >= taxable_income:
-                break
-            cumulative_amount += amount
-
-        # Calculate tax only for applicable slabs
-        for amount, label, rate in slabs:
-            if remaining <= 0:
-                break
-                
-            if amount is None:  # Final slab
-                if remaining > 0:
-                    slab_tax = remaining * rate
-                    tax += slab_tax
-                    if rate > 0:  # Only show slabs with actual tax
-                        tax_slabs.append({'range': f'{label} @ {int(rate * 100)}%', 'tax': str(slab_tax)})
-                break
-            
-            slab_amount = min(remaining, amount)
-            if slab_amount > 0:
-                slab_tax = slab_amount * rate
-                tax += slab_tax
-                if rate > 0:  # Only show slabs with actual tax
-                    tax_slabs.append({'range': f'{label} @ {int(rate * 100)}%', 'tax': str(slab_tax)})
-                remaining -= slab_amount
-    
-    # Calculate surcharge for high income
-    surcharge = Decimal('0')
-    surcharge_rate = 0
-    if taxable_income > 5000000 and taxable_income <= 10000000:
-        surcharge_rate = 10
-        surcharge = tax * Decimal('0.10')
-    elif taxable_income > 10000000 and taxable_income <= 20000000:
-        surcharge_rate = 15
-        surcharge = tax * Decimal('0.15')
-    elif taxable_income > 20000000 and taxable_income <= 50000000:
-        surcharge_rate = 25
-        surcharge = tax * Decimal('0.25')
-    elif taxable_income > 50000000:
-        surcharge_rate = 37
-        surcharge = tax * Decimal('0.37')
-    
-    # Calculate health and education cess
-    cess = (tax + surcharge) * Decimal('0.04')
-    
-    # Total tax payable
-    total_tax = tax + surcharge + cess
-    
-    return {
-        'tax': total_tax,
-        'tax_slabs': tax_slabs,
-        'surcharge': surcharge,
-        'surcharge_rate': surcharge_rate,
-        'cess': cess
-    }
+    # Placeholder for tax calculation logic
+    # This should be expanded based on current tax rules
+    taxable_income = gross_income - sum(deductions.values())
+    # Basic calculation (to be enhanced)
+    return max(0, (taxable_income * Decimal('0.2')))
 
 
 @login_required
