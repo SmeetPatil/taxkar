@@ -13,6 +13,8 @@ TaxKar is a an online website (G2C) that can be used to assess income tax, GST o
    > python manage.py makemigrations
    >
    > python manage.py migrate
+   >
+   > python manage.py collectstatic
 6. Create a superuser and remember the username and password. Use :
    > python manage.py createsuperuser
 7. Now that everything is ready, run the app using :
