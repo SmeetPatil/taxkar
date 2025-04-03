@@ -18,10 +18,188 @@ try:
     with open(os.path.join(os.path.dirname(__file__), 'alpha_vantage_api_key.txt'), 'r') as file:
         ALPHA_VANTAGE_API_KEY = file.read().strip()
 except FileNotFoundError:
-    ALPHA_VANTAGE_API_KEY = '4RV4AL39F2VA8GYL'  # Using your existing API key as fallback
+    ALPHA_VANTAGE_API_KEY = '68FOBF3PIK1KWYZ1' # Using your existing API key as fallback
 
+# Add Finnhub API key
+try:
+    with open(os.path.join(os.path.dirname(__file__), 'finnhub_api_key.txt'), 'r') as file:
+        FINNHUB_API_KEY = file.read().strip()
+except FileNotFoundError:
+    FINNHUB_API_KEY = 'cvmh9rpr01qltjkgmiggcvmh9rpr01qltjkgmih0'  # Using your existing key as fallback
+
+# Add MarketStack API key as third option
+try:
+    with open(os.path.join(os.path.dirname(__file__), 'marketstack_api_key.txt'), 'r') as file:
+        MARKETSTACK_API_KEY = file.read().strip()
+except FileNotFoundError:
+    # You should register for a free API key at https://marketstack.com/
+    MARKETSTACK_API_KEY = 'YOUR_MARKETSTACK_API_KEY'  # Replace with your actual key
+
+def get_stock_data_from_finnhub(symbol, period='1y'):
+    """Fetch stock data from Finnhub API as a backup"""
+    try:
+        print(f"Trying Finnhub API for {symbol}")
+        
+        # Convert period to timestamps
+        end_timestamp = int(datetime.now().timestamp())
+        
+        # Calculate start timestamp based on period
+        if period == '1y':
+            start_timestamp = int((datetime.now() - timedelta(days=365)).timestamp())
+        elif period == '2y':
+            start_timestamp = int((datetime.now() - timedelta(days=730)).timestamp())
+        else:
+            start_timestamp = int((datetime.now() - timedelta(days=90)).timestamp())
+        
+        # Format symbol for Finnhub (add exchange if needed)
+        formatted_symbol = symbol
+        if '.BSE' in symbol:
+            formatted_symbol = symbol.replace('.BSE', '') + '.BO'
+        elif '.NSE' in symbol:
+            formatted_symbol = symbol.replace('.NSE', '') + '.NS'
+            
+        # Fetch candle data
+        url = f'https://finnhub.io/api/v1/stock/candle'
+        params = {
+            'symbol': formatted_symbol,
+            'resolution': 'D',  # Daily candles
+            'from': start_timestamp,
+            'to': end_timestamp,
+            'token': FINNHUB_API_KEY
+        }
+        
+        response = requests.get(url, params=params)
+        data = response.json()
+        
+        # Check if we got valid data
+        if data.get('s') == 'ok' and 'c' in data and len(data['c']) > 0:
+            # Convert to DataFrame
+            df = pd.DataFrame({
+                'date': [datetime.fromtimestamp(ts).date() for ts in data['t']],
+                'open_price': data['o'],
+                'high_price': data['h'],
+                'low_price': data['l'],
+                'close_price': data['c'],
+                'volume': data['v']
+            })
+            
+            # Sort by date
+            df = df.sort_values('date')
+            
+            # Store in database for caching
+            for index, row in df.iterrows():
+                StockData.objects.update_or_create(
+                    symbol=symbol,
+                    date=row['date'],
+                    defaults={
+                        'open_price': row['open_price'],
+                        'high_price': row['high_price'],
+                        'low_price': row['low_price'],
+                        'close_price': row['close_price'],
+                        'volume': row['volume']
+                    }
+                )
+            
+            print(f"Successfully fetched and stored data for {symbol} from Finnhub")
+            return df
+        else:
+            print(f"No data found for {symbol} in Finnhub: {data.get('s', 'unknown error')}")
+            return None
+            
+    except Exception as e:
+        print(f"Error fetching stock data from Finnhub: {e}")
+        return None
+
+def get_stock_data_from_marketstack(symbol, period='1y'):
+    """Fetch stock data from MarketStack API as a second backup"""
+    try:
+        print(f"Trying MarketStack API for {symbol}")
+        
+        # Calculate date range based on period
+        end_date = datetime.now().date()
+        if period == '1y':
+            start_date = end_date - timedelta(days=365)
+        elif period == '2y':
+            start_date = end_date - timedelta(days=730)
+        else:
+            start_date = end_date - timedelta(days=90)
+            
+        # Format dates for API
+        start_date_str = start_date.strftime('%Y-%m-%d')
+        end_date_str = end_date.strftime('%Y-%m-%d')
+        
+        # Format symbol for MarketStack (add exchange if needed)
+        formatted_symbol = symbol
+        if '.BSE' in symbol:
+            formatted_symbol = symbol.replace('.BSE', '.XBOM')
+        elif '.NSE' in symbol:
+            formatted_symbol = symbol.replace('.NSE', '.XNSE')
+            
+        # Fetch historical data
+        url = 'http://api.marketstack.com/v1/eod'
+        params = {
+            'access_key': MARKETSTACK_API_KEY,
+            'symbols': formatted_symbol,
+            'date_from': start_date_str,
+            'date_to': end_date_str,
+            'limit': 1000  # Maximum records to return
+        }
+        
+        response = requests.get(url, params=params)
+        data = response.json()
+        
+        # Check if we got valid data
+        if 'data' in data and len(data['data']) > 0:
+            # Convert to DataFrame
+            stock_data = data['data']
+            
+            # Create DataFrame
+            df = pd.DataFrame(stock_data)
+            
+            # Rename columns to match our format
+            df = df.rename(columns={
+                'date': 'date_str',
+                'open': 'open_price',
+                'high': 'high_price',
+                'low': 'low_price',
+                'close': 'close_price',
+                'volume': 'volume'
+            })
+            
+            # Convert date string to datetime
+            df['date'] = pd.to_datetime(df['date_str']).dt.date
+            
+            # Sort by date
+            df = df.sort_values('date')
+            
+            # Store in database for caching
+            for index, row in df.iterrows():
+                StockData.objects.update_or_create(
+                    symbol=symbol,
+                    date=row['date'],
+                    defaults={
+                        'open_price': row['open_price'],
+                        'high_price': row['high_price'],
+                        'low_price': row['low_price'],
+                        'close_price': row['close_price'],
+                        'volume': row['volume']
+                    }
+                )
+            
+            print(f"Successfully fetched and stored data for {symbol} from MarketStack")
+            return df
+        else:
+            error_msg = data.get('error', {}).get('message', 'unknown error')
+            print(f"No data found for {symbol} in MarketStack: {error_msg}")
+            return None
+            
+    except Exception as e:
+        print(f"Error fetching stock data from MarketStack: {e}")
+        return None
+
+# Update the get_stock_data function to include MarketStack as a third option
 def get_stock_data(symbol, period='1y'):
-    """Fetch stock data from Alpha Vantage API"""
+    """Fetch stock data with multiple API fallbacks"""
     try:
         # Check if we have recent data in the database
         latest_data = StockData.objects.filter(symbol=symbol).order_by('-date').first()
@@ -53,6 +231,39 @@ def get_stock_data(symbol, period='1y'):
                     print(f"Using cached data for {symbol} from database")
                     return df
         
+        # Try Alpha Vantage API first
+        alpha_vantage_data = get_stock_data_from_alpha_vantage(symbol, period)
+        
+        # If Alpha Vantage fails, try Finnhub as backup
+        if alpha_vantage_data is None or alpha_vantage_data.empty:
+            print(f"Alpha Vantage API failed for {symbol}, trying Finnhub as backup")
+            finnhub_data = get_stock_data_from_finnhub(symbol, period)
+            
+            # If Finnhub fails, try MarketStack as final backup
+            if finnhub_data is None or finnhub_data.empty:
+                print(f"Finnhub API failed for {symbol}, trying MarketStack as final backup")
+                return get_stock_data_from_marketstack(symbol, period)
+            return finnhub_data
+        
+        return alpha_vantage_data
+        
+    except Exception as e:
+        print(f"Error in main get_stock_data function: {e}")
+        # Try Finnhub as a second resort
+        try:
+            finnhub_data = get_stock_data_from_finnhub(symbol, period)
+            if finnhub_data is not None and not finnhub_data.empty:
+                return finnhub_data
+                
+            # Try MarketStack as a final resort
+            return get_stock_data_from_marketstack(symbol, period)
+        except Exception as backup_error:
+            print(f"All APIs failed: {backup_error}")
+            return None
+
+def get_stock_data_from_alpha_vantage(symbol, period='1y'):
+    """Original Alpha Vantage implementation"""
+    try:
         # Try different API endpoints to get the data
         # First try: Standard Alpha Vantage endpoint
         url = f'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={symbol}&outputsize=compact&apikey={ALPHA_VANTAGE_API_KEY}'
@@ -120,7 +331,7 @@ def get_stock_data(symbol, period='1y'):
                 data = response.json()
                 
                 if 'Time Series (Daily)' not in data:
-                    print(f"No data found for {symbol} with any exchange")
+                    print(f"No data found for {symbol} with any exchange in Alpha Vantage")
                     return None
         
         # Extract time series data
@@ -164,7 +375,7 @@ def get_stock_data(symbol, period='1y'):
                 }
             )
         
-        print(f"Successfully fetched and stored data for {symbol}")
+        print(f"Successfully fetched and stored data for {symbol} from Alpha Vantage")
         # Convert string values to float in the DataFrame
         for col in ['open_price', 'high_price', 'low_price', 'close_price']:
             if col in df.columns:
@@ -193,7 +404,7 @@ def get_stock_data(symbol, period='1y'):
         
         return df
     except Exception as e:
-        print(f"Error fetching stock data: {e}")
+        print(f"Error fetching stock data from Alpha Vantage: {e}")
         return None
 
 def predict_stock_price(symbol, days=30):
