@@ -3,35 +3,65 @@
 {% block title %}GST Calculation Result{% endblock %}
 
 {% block content %}
-<h2>GST Calculation Results</h2>
-<div class="result-container">
-    <table class="table">
-        <tr>
-            <th>Description</th>
-            <th>Amount</th>
-        </tr>
-        <tr>
-            <td>GST Amount</td>
-            <td>₹ {{ gst }}</td>
-        </tr>
-        <tr>
-            <td>Total Amount (Including GST)</td>
-            <td>₹ {{ total }}</td>
-        </tr>
-    </table>
-    {% if user.is_authenticated %}
-    <a href="#" class="btn" onclick="window.print()">Download PDF</a>
-    {% endif %}
-    <a href="{% url 'calculate_gst' %}" class="btn">Calculate Another</a>
-    <br>
-    <br>
-    <form method="post" action="{% url 'calculate_gst' %}">
-        {% csrf_token %}
-        <input type="hidden" name="base_amount" value="{{ base_amount }}">
-        <input type="hidden" name="gst_rate" value="{{ gst_rate }}">
-        <input type="hidden" name="transaction_type" value="{{ transaction_type }}">
-        <input type="hidden" name="save" value="true">
-        <button type="submit" class="btn btn-primary">Save Calculation</button>
-    </form>
+<div class="result-container" style="max-width: 800px; margin: 0 auto; padding: 2rem; animation: fadeInUp 0.8s ease-out;">
+    <h2 class="section-title" style="color: var(--primary-dark); text-align: center; margin-bottom: 2rem;">GST Calculation Results</h2>
+    
+    <div class="card" style="background: var(--white); border-radius: 15px; padding: 2rem; box-shadow: var(--card-shadow);">
+        <div class="result-summary" style="margin-bottom: 2rem; text-align: center;">
+            <h3 style="color: var(--primary); margin-bottom: 1rem;">Summary</h3>
+            <div style="font-size: 2rem; color: var(--primary-dark); font-weight: 700; margin-bottom: 0.5rem;">
+                ₹ {{ total }}
+            </div>
+            <div style="color: var(--text-light);">Total Amount (Including GST)</div>
+        </div>
+
+        <div class="result-details" style="background: rgba(0, 41, 107, 0.05); border-radius: 10px; padding: 1.5rem; margin-bottom: 2rem;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr style="border-bottom: 1px solid rgba(0, 41, 107, 0.1);">
+                    <td style="padding: 1rem; color: var(--text-dark);">Base Amount</td>
+                    <td style="padding: 1rem; text-align: right; font-weight: 600;">₹ {{ base_amount }}</td>
+                </tr>
+                {% if transaction_type == 'INTRA' %}
+                <tr style="border-bottom: 1px solid rgba(0, 41, 107, 0.1);">
+                    <td style="padding: 1rem; color: var(--text-dark);">CGST ({{ gst_rate|floatformat:1 }}%)</td>
+                    <td style="padding: 1rem; text-align: right; font-weight: 600;">₹ {{ gst|floatformat:2 }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(0, 41, 107, 0.1);">
+                    <td style="padding: 1rem; color: var(--text-dark);">SGST ({{ gst_rate|floatformat:1 }}%)</td>
+                    <td style="padding: 1rem; text-align: right; font-weight: 600;">₹ {{ gst|floatformat:2 }}</td>
+                </tr>
+                {% else %}
+                <tr style="border-bottom: 1px solid rgba(0, 41, 107, 0.1);">
+                    <td style="padding: 1rem; color: var(--text-dark);">IGST ({{ gst_rate }}%)</td>
+                    <td style="padding: 1rem; text-align: right; font-weight: 600;">₹ {{ gst }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td style="padding: 1rem; color: var(--primary-dark); font-weight: 700;">Total Amount</td>
+                    <td style="padding: 1rem; text-align: right; color: var(--primary-dark); font-weight: 700;">₹ {{ total }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="calculation-details" style="margin-bottom: 2rem;">
+            <h4 style="color: var(--primary); margin-bottom: 1rem;">Calculation Details</h4>
+            <div style="background: rgba(0, 41, 107, 0.05); border-radius: 10px; padding: 1.5rem;">
+                <p style="margin-bottom: 0.5rem;"><strong>Category:</strong> {{ category }}</p>
+                <p style="margin-bottom: 0.5rem;"><strong>Commodity:</strong> {{ commodity }}</p>
+                <p style="margin-bottom: 0.5rem;"><strong>Transaction Type:</strong> {{ transaction_type }}</p>
+                <p><strong>GST Rate:</strong> {{ gst_rate }}%</p>
+            </div>
+        </div>
+
+        <div class="action-buttons" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <button onclick="window.print()" class="btn" style="flex: 1; background: var(--accent); color: var(--primary-dark); padding: 1rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                <i class="fas fa-download"></i> Download PDF
+            </button>
+            
+            <a href="{% url 'calculate_gst' %}" class="btn" style="flex: 1; background: var(--primary-light); color: var(--white); padding: 1rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-align: center; text-decoration: none;">
+                <i class="fas fa-calculator"></i> Calculate Again
+            </a>
+        </div>
+    </div>
 </div>
 {% endblock %}

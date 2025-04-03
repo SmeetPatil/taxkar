@@ -1,48 +1,183 @@
 {% extends 'base.html' %}
 
-{% block title %}GST Calculator{% endblock %}
+{% block title %}GST Calculator - TaxKar{% endblock %}
 
 {% block content %}
-<h2>GST Calculator</h2>
-{% if error %}
-<div class="alert alert-danger">
-    {{ error }}
-</div>
-{% endif %}
-<form method="post">
-    {% csrf_token %}
-    <div class="form-group">
-        <label>Base Amount:</label>
-        <input type="number" name="base_amount" step="0.01" required>
+<div class="calculator-container" style="animation: fadeInUp 0.8s ease-out; max-width: 1000px; margin: 0 auto; padding: 2rem;">
+    <h1 style="font-size: 2.5rem; color: var(--primary-dark); margin-bottom: 1rem; font-weight: 700; text-align: center; position: relative; display: inline-block; left: 50%; transform: translateX(-50%);">
+        GST Calculator
+        <span style="display: block; content: ''; position: absolute; bottom: -10px; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, transparent, var(--accent), transparent); border-radius: 2px;"></span>
+    </h1>
+    
+    {% if error %}
+    <div class="alert alert-danger" style="background: rgba(255, 0, 0, 0.1); color: #d32f2f; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+        {{ error }}
     </div>
-    <div class="form-group">
-        <label>GST Rate (%):</label>
-        <select name="gst_rate">
-            <option value="5">5%</option>
-            <option value="12">12%</option>
-            <option value="18">18%</option>
-            <option value="28">28%</option>
-        </select>
-    </div>
-    <div class="form-group">
-        <label>Transaction Type:</label>
-        <select name="transaction_type">
-            <option value="INTRA">Intra State</option>
-            <option value="INTER">Inter State</option>
-        </select>
-    </div>  
-    <!-- In each of your calculator templates (calculate_tax.html, calculate_gst.html, forex_converter.html) -->
-    <div class="card">
-    <form method="post">
-        <!-- Your form fields -->
-        <button type="submit" class = "btn">Calculate</button>
+    {% endif %}
 
-        {% if not user.is_authenticated %}
-        <div class="login-prompt">
-            <p>Want to save your calculation history? <a href="{% url 'login' %}">Log in</a> or <a href="{% url 'register' %}">create an account</a>.</p>
-        </div>
-        {% endif %}
-    </form>
+    <div class="card" style="background: linear-gradient(135deg, var(--primary-dark), var(--primary)); border-radius: 20px; padding: 2rem; margin-bottom: 2rem; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: var(--card-shadow); max-width: 600px; margin: 2rem auto; color: var(--white); position: relative; overflow: hidden;">
+        <form method="post" style="display: flex; flex-direction: column; gap: 1.5rem; align-items: center;">
+            {% csrf_token %}
+            
+            <div class="form-group" style="animation: fadeInUp 0.8s ease-out 0.1s;">
+                <label style="color: var(--white); font-weight: 600; margin-bottom: 0.5rem; display: block;">Base Amount (₹)</label>
+                <input type="number" name="base_amount" step="0.01" required 
+                       style="width: 400px; max-width: 100%; padding: 0.8rem; border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; outline: none; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.1); color: var(--white);"
+                       placeholder="Enter amount">
+            </div>
+
+            <div class="form-group" style="animation: fadeInUp 0.8s ease-out 0.2s;">
+                <label style="color: var(--white); font-weight: 600; margin-bottom: 0.5rem; display: block;">Category</label>
+                <select name="category" id="gst-category" style="width: 400px; max-width: 100%; padding: 0.8rem; border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; outline: none; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.1); color: var(--white);">
+                    <option value="">Select a category</option>
+                    <option value="essential">Essential Goods (0%)</option>
+                    <option value="food_5">Food & Beverages (5%)</option>
+                    <option value="food_12">Food & Beverages (12%)</option>
+                    <option value="food_18">Food & Beverages (18%)</option>
+                    <option value="food_28">Food & Beverages (28%)</option>
+                    <option value="household_5">Household & Daily Use Items (5%)</option>
+                    <option value="household_12">Household & Daily Use Items (12%)</option>
+                    <option value="household_18">Household & Daily Use Items (18%)</option>
+                    <option value="household_28">Household & Daily Use Items (28%)</option>
+                    <option value="auto_5">Automobiles (5%)</option>
+                    <option value="auto_12">Automobiles (12%)</option>
+                    <option value="auto_18">Automobiles (18%)</option>
+                    <option value="auto_28">Automobiles (28%)</option>
+                    <option value="electronics_12">Electronics & Gadgets (12%)</option>
+                    <option value="electronics_18">Electronics & Gadgets (18%)</option>
+                    <option value="electronics_28">Electronics & Gadgets (28%)</option>
+                    <option value="jewelry_3">Gold, Jewellery & Precious Items (3%)</option>
+                    <option value="jewelry_12">Gold, Jewellery & Precious Items (12%)</option>
+                    <option value="clothing_5">Clothing & Textiles (5%)</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="animation: fadeInUp 0.8s ease-out 0.3s;">
+                <label style="color: var(--white); font-weight: 600; margin-bottom: 0.5rem; display: block;">Commodity</label>
+                <select name="commodity" id="commodity-select" style="width: 400px; max-width: 100%; padding: 0.8rem; border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; outline: none; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.1); color: var(--white);">
+                    <option value="">Select category first</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="animation: fadeInUp 0.8s ease-out 0.4s;">
+                <label style="color: var(--white); font-weight: 600; margin-bottom: 0.5rem; display: block;">Transaction Type</label>
+                <select name="transaction_type" style="width: 400px; max-width: 100%; padding: 0.8rem; border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; outline: none; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.1); color: var(--white);">
+                    <option value="INTRA">Intra State (CGST + SGST)</option>
+                    <option value="INTER">Inter State (IGST)</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn" style="background: var(--accent); color: var(--white); padding: 1rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; animation: fadeInUp 0.8s ease-out 0.5s; width: 200px; position: relative; overflow: hidden;">
+                Calculate GST
+            </button>
+
+            {% if not user.is_authenticated %}
+            <div class="login-prompt" style="text-align: center; margin-top: 1rem; animation: fadeInUp 0.8s ease-out 0.6s;">
+                <p style="color: var(--text-light);">Want to save your calculation history? 
+                    <a href="{% url 'login' %}" style="color: var(--primary); text-decoration: none; font-weight: 600;">Log in</a> or 
+                    <a href="{% url 'register' %}" style="color: var(--primary); text-decoration: none; font-weight: 600;">create an account</a>.
+                </p>
+            </div>
+            {% endif %}
+        </form>
     </div>
-</form>
+</div>
+
+<script>
+const categoryData = {
+    'essential': {
+        rate: 0,
+        items: ['Fresh fruits', 'Vegetables', 'Milk', 'Curd', 'Eggs', 'Unbranded rice', 'Pulses', 'Books', 'Healthcare services', 'Education services']
+    },
+    'food_5': {
+        rate: 5,
+        items: ['Branded paneer', 'Frozen vegetables', 'Packaged foods', 'Tea', 'Coffee', 'Edible oils', 'Ghee', 'Sugar']
+    },
+    'food_12': {
+        rate: 12,
+        items: ['Processed foods', 'Biscuits', 'Cakes', 'Pastries']
+    },
+    'food_18': {
+        rate: 18,
+        items: ['Soft drinks', 'Chocolates', 'Ice cream']
+    },
+    'food_28': {
+        rate: 28,
+        items: ['Aerated beverages', 'Energy drinks']
+    },
+    'household_5': {
+        rate: 5,
+        items: ['Toothpaste', 'Soap', 'Hair oil', 'Umbrellas', 'Footwear (below ₹1000)']
+    },
+    'household_12': {
+        rate: 12,
+        items: ['Pressure cookers', 'Water purifiers', 'Smartwatches']
+    },
+    'household_18': {
+        rate: 18,
+        items: ['Perfumes', 'Shampoos', 'Cosmetics', 'Footwear (above ₹1000)']
+    },
+    'household_28': {
+        rate: 28,
+        items: ['Detergents', 'Air conditioners', 'Refrigerators', 'Washing machines']
+    },
+    'auto_5': {
+        rate: 5,
+        items: ['Electric vehicles (EVs)']
+    },
+    'auto_12': {
+        rate: 12,
+        items: ['Bicycles', 'Bicycle parts']
+    },
+    'auto_18': {
+        rate: 18,
+        items: ['Two-wheelers (up to 350cc)']
+    },
+    'auto_28': {
+        rate: 28,
+        items: ['Cars', 'SUVs', 'Luxury motorcycles']
+    },
+    'electronics_12': {
+        rate: 12,
+        items: ['Mobile phones', 'Smartwatches']
+    },
+    'electronics_18': {
+        rate: 18,
+        items: ['Laptops', 'Desktops', 'TVs (up to 32 inches)', 'Routers', 'Gaming consoles']
+    },
+    'electronics_28': {
+        rate: 28,
+        items: ['TVs (above 32 inches)', 'Air conditioners', 'Refrigerators']
+    },
+    'jewelry_3': {
+        rate: 3,
+        items: ['Gold jewelry', 'Silver jewelry', 'Platinum jewelry']
+    },
+    'jewelry_12': {
+        rate: 12,
+        items: ['Imitation jewelry']
+    },
+    'clothing_5': {
+        rate: 5,
+        items: ['Fabric', 'Garments (below ₹1000)']
+    }
+};
+
+const categorySelect = document.getElementById('gst-category');
+const commoditySelect = document.getElementById('commodity-select');
+
+categorySelect.addEventListener('change', function() {
+    const category = this.value;
+    commoditySelect.innerHTML = '<option value="">Select a commodity</option>';
+    
+    if (category && categoryData[category]) {
+        categoryData[category].items.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item;
+            option.textContent = item;
+            commoditySelect.appendChild(option);
+        });
+    }
+});
+</script>
 {% endblock %}

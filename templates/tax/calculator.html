@@ -1,49 +1,123 @@
 {% extends 'base.html' %}
 
-{% block title %}Income Tax Calculator{% endblock %}
+{% block title %}Income Tax Calculator - TaxKar{% endblock %}
 
 {% block content %}
-<h2>Income Tax Calculator</h2>
-<form method="post">
-    {% csrf_token %}
-    <div class="form-group">
-        <label>Gross Income:</label>
-        <input type="number" name="gross_income" required>
+<div class="calculator-container" style="animation: fadeInUp 0.8s ease-out; max-width: 1000px; margin: 0 auto; padding: 2rem;">
+    <h1 style="font-size: 2.5rem; color: var(--primary-dark); margin-bottom: 1rem; font-weight: 700; text-align: center; position: relative; display: inline-block; left: 50%; transform: translateX(-50%);">
+        Income Tax Calculator
+        <span style="display: block; content: ''; position: absolute; bottom: -10px; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, transparent, var(--accent), transparent); border-radius: 2px;"></span>
+    </h1>
+    
+    {% if error %}
+    <div class="alert alert-danger" style="background: rgba(255, 0, 0, 0.1); color: #d32f2f; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+        {{ error }}
     </div>
-    <div class="form-group">
-        <label>Tax Regime:</label>
-        <select name="regime">
-            <option value="NEW">New Regime</option>
-            <option value="OLD">Old Regime</option>
-        </select>
-    </div>
-    <h3>Deductions (Old Regime)</h3>
-    <div class="form-group">
-        <label>80C:</label>
-        <input type="number" name="80c" value="0">
-    </div>
-    <div class="form-group">
-        <label>HRA:</label>
-        <input type="number" name="hra" value="0">
-    </div>
-    <div class="form-group">
-        <label>Medical:</label>
-        <input type="number" name="medical" value="0">
-        <br><br>
-        <button type="submit" name="save" value="true" class="btn btn-primary">Save Calculation</button>
-    </div>
+    {% endif %}
 
-    <div class="card">
-    <form method="post">
-        <!-- Your form fields -->
-        <button type="submit" class="btn">Calculate</button>
+    <div class="card" style="background: linear-gradient(135deg, var(--primary-dark), var(--primary)); border-radius: 20px; padding: 2rem; margin-bottom: 2rem; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: var(--card-shadow); max-width: 600px; margin: 2rem auto; color: var(--white); position: relative; overflow: hidden;">
+        <form method="post" style="display: flex; flex-direction: column; gap: 1.5rem; align-items: center;">
+            {% csrf_token %}
+            
+            <div class="form-group" style="animation: fadeInUp 0.8s ease-out 0.1s;">
+                <label style="color: var(--white); font-weight: 600; margin-bottom: 0.5rem; display: block;">Financial Year</label>
+                <select name="financial_year" style="width: 400px; max-width: 100%; padding: 0.8rem; border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; outline: none; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.1); color: var(--white);">
+                    <option style="background: var(--primary-dark); color: var(--white);" value="2024-25">2024-25</option>
+                    <option style="background: var(--primary-dark); color: var(--white);" value="2023-24">2023-24</option>
+                    <option value="2024-25">2024-25</option>
+                    <option value="2023-24">2023-24</option>
+                </select>
+            </div>
 
-        {% if not user.is_authenticated %}
-        <div class="login-prompt">
-            <p>Want to save your calculation history? <a href="{% url 'login' %}">Log in</a> or <a href="{% url 'register' %}">create an account</a>.</p>
-        </div>
-        {% endif %}
-    </form>
+            <div class="form-group" style="animation: fadeInUp 0.8s ease-out 0.2s;">
+                <label style="color: var(--white); font-weight: 600; margin-bottom: 0.5rem; display: block;">Tax Regime</label>
+                <select name="regime" id="tax-regime" style="width: 400px; max-width: 100%; padding: 0.8rem; border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; outline: none; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.1); color: var(--white);">
+                    <option value="NEW">New Tax Regime (Default from FY 2023-24)</option>
+                    <option value="OLD">Old Tax Regime</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="animation: fadeInUp 0.8s ease-out 0.3s;">
+                <label style="color: var(--white); font-weight: 600; margin-bottom: 0.5rem; display: block;">Gross Annual Income (₹)</label>
+                <input type="number" name="gross_income" required 
+                       style="width: 400px; max-width: 100%; padding: 0.8rem; border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; outline: none; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.1); color: var(--white);"
+                       placeholder="Enter your total annual income">
+            </div>
+
+            <div id="old-regime-deductions" style="display: none; animation: fadeInUp 0.8s ease-out;">
+                <h3 style="color: var(--primary); margin: 1rem 0;">Deductions & Exemptions (Old Regime)</h3>
+                
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="color: var(--text-dark); font-weight: 600; margin-bottom: 0.5rem; display: block;">Section 80C (Max ₹1,50,000)</label>
+                    <input type="number" name="80c" value="0" 
+                           style="width: 100%; padding: 0.8rem; border: 2px solid var(--primary-light); border-radius: 8px; outline: none; transition: all 0.3s ease;"
+                           placeholder="PPF, ELSS, Life Insurance, etc.">
+                    <small style="color: var(--text-light); display: block; margin-top: 0.3rem;">Includes PPF, ELSS, Life Insurance Premium, etc.</small>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="color: var(--text-dark); font-weight: 600; margin-bottom: 0.5rem; display: block;">Section 80D - Medical Insurance (Max ₹25,000)</label>
+                    <input type="number" name="80d" value="0" 
+                           style="width: 100%; padding: 0.8rem; border: 2px solid var(--primary-light); border-radius: 8px; outline: none; transition: all 0.3s ease;"
+                           placeholder="Health Insurance Premium">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="color: var(--text-dark); font-weight: 600; margin-bottom: 0.5rem; display: block;">House Rent Allowance (HRA)</label>
+                    <input type="number" name="hra" value="0" 
+                           style="width: 100%; padding: 0.8rem; border: 2px solid var(--primary-light); border-radius: 8px; outline: none; transition: all 0.3s ease;"
+                           placeholder="Annual HRA received">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="color: var(--text-dark); font-weight: 600; margin-bottom: 0.5rem; display: block;">Section 80E - Education Loan Interest</label>
+                    <input type="number" name="80e" value="0" 
+                           style="width: 100%; padding: 0.8rem; border: 2px solid var(--primary-light); border-radius: 8px; outline: none; transition: all 0.3s ease;"
+                           placeholder="Education Loan Interest paid">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="color: var(--text-dark); font-weight: 600; margin-bottom: 0.5rem; display: block;">Section 80G - Charitable Donations</label>
+                    <input type="number" name="80g" value="0" 
+                           style="width: 100%; padding: 0.8rem; border: 2px solid var(--primary-light); border-radius: 8px; outline: none; transition: all 0.3s ease;"
+                           placeholder="Charitable Donations">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="color: var(--text-dark); font-weight: 600; margin-bottom: 0.5rem; display: block;">Standard Deduction</label>
+                    <input type="number" name="standard_deduction" value="50000" readonly 
+                           style="width: 100%; padding: 0.8rem; border: 2px solid var(--primary-light); border-radius: 8px; outline: none; transition: all 0.3s ease; background: #f5f5f5;">
+                    <small style="color: var(--text-light); display: block; margin-top: 0.3rem;">Fixed amount of ₹50,000</small>
+                </div>
+            </div>
+
+            <button type="submit" class="btn" style="background: var(--accent); color: var(--white); padding: 1rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; animation: fadeInUp 0.8s ease-out 0.5s; width: 200px; position: relative; overflow: hidden;">
+                <span style="position: relative; z-index: 1;">
+                Calculate Tax
+            </button>
+
+            {% if not user.is_authenticated %}
+            <div class="login-prompt" style="text-align: center; margin-top: 1rem; animation: fadeInUp 0.8s ease-out 0.6s;">
+                <p style="color: var(--text-light);">Want to save your calculation history? 
+                    <a href="{% url 'login' %}" style="color: var(--primary); text-decoration: none; font-weight: 600;">Log in</a> or 
+                    <a href="{% url 'register' %}" style="color: var(--primary); text-decoration: none; font-weight: 600;">create an account</a>.
+                </p>
+            </div>
+            {% endif %}
+        </form>
     </div>
-</form>
+</div>
+
+<script>
+const taxRegimeSelect = document.getElementById('tax-regime');
+const oldRegimeDeductions = document.getElementById('old-regime-deductions');
+
+taxRegimeSelect.addEventListener('change', function() {
+    if (this.value === 'OLD') {
+        oldRegimeDeductions.style.display = 'block';
+    } else {
+        oldRegimeDeductions.style.display = 'none';
+    }
+});
+</script>
 {% endblock %}

@@ -61,6 +61,7 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
+STATIC_ROOT = BASE_DIR / 'static'
 SITE_ID = 1
 
 ROOT_URLCONF = 'taxkarrapp.urls'
@@ -68,8 +69,7 @@ ROOT_URLCONF = 'taxkarrapp.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
-        ,
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -84,10 +84,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'taxkarrapp.wsgi.application'
 
-#Twilio
-TWILIO_ACCOUNT_SID = 'ACdd0185620aaf22227bdbe056a95138b0'
-TWILIO_AUTH_TOKEN = '0cc7634912952137ec0e8da535b0fe71'
-TWILIO_PHONE_NUMBER = '+18315151512'
+
 
 
 # Database
@@ -135,7 +132,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static'
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -168,3 +169,7 @@ LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
 
 FOREX_API_KEY = '4RV4AL39F2VA8GYL'
+
+
+
+  # Get your free API key from huggingface.co

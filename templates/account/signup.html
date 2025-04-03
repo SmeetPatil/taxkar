@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 
-{% block title %}Login - TaxKar{% endblock %}
+{% block title %}Sign Up - TaxKar{% endblock %}
 
 {% block content %}
 <div class="login-container">
     <div class="login-card">
         <div class="login-header">
-            <h1>Welcome Back</h1>
-            <p class="subtitle">Login to access your TaxKar account</p>
+            <h1>Create Account</h1>
+            <p class="subtitle">Join TaxKar for better financial management</p>
         </div>
         
         <form method="post" class="login-form">
@@ -23,15 +23,25 @@
             <div class="form-group">
                 <div class="input-container">
                     <i class="fas fa-lock input-icon"></i>
-                    <input type="password" name="password" required placeholder="Password">
+                    <input type="password" name="password1" required placeholder="Password">
                 </div>
-                <div class="forgot-password">
-                    <a href="#">Forgot Password?</a>
+                <ul class="password-requirements">
+                    <li>Your password can't be too similar to your other personal information.</li>
+                    <li>Your password must contain at least 8 characters.</li>
+                    <li>Your password can't be a commonly used password.</li>
+                    <li>Your password can't be entirely numeric.</li>
+                </ul>
+            </div>
+            
+            <div class="form-group">
+                <div class="input-container">
+                    <i class="fas fa-lock input-icon"></i>
+                    <input type="password" name="password2" required placeholder="Confirm Password">
                 </div>
             </div>
             
             <button type="submit" class="login-btn">
-                <span>Login</span>
+                <span>Sign Up</span>
                 <i class="fas fa-arrow-right"></i>
             </button>
         </form>
@@ -47,12 +57,12 @@
             </a>
             <a href="{% url 'phone_login' %}" class="social-btn phone-btn">
                 <i class="fas fa-phone-alt"></i>
-                <span>Login with Phone</span>
+                <span>Sign Up with Phone</span>
             </a>
         </div>
 
         <div class="register-link">
-            <p>Don't have an account? <a href="{% url 'account_signup' %}">Register Now</a></p>
+            <p>Already have an account? <a href="{% url 'account_login' %}">Login</a></p>
         </div>
     </div>
     
@@ -185,20 +195,15 @@
         outline: none;
     }
     
-    .forgot-password {
-        text-align: right;
-        margin-top: 0.5rem;
+    .password-requirements {
+        margin-top: 0.8rem;
+        padding-left: 1.5rem;
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.7);
     }
     
-    .forgot-password a {
-        color: var(--accent);
-        font-size: 0.9rem;
-        text-decoration: none;
-        transition: all 0.3s ease;
-    }
-    
-    .forgot-password a:hover {
-        text-decoration: underline;
+    .password-requirements li {
+        margin-bottom: 0.3rem;
     }
     
     .login-btn {
@@ -228,10 +233,10 @@
         display: flex;
         align-items: center;
         margin: 1.5rem 0;
-        color: rgba(255, 255, 255, 0.6);
     }
     
-    .divider::before, .divider::after {
+    .divider::before,
+    .divider::after {
         content: '';
         flex: 1;
         height: 1px;
@@ -239,7 +244,8 @@
     }
     
     .divider span {
-        padding: 0 15px;
+        padding: 0 1rem;
+        color: rgba(255, 255, 255, 0.7);
         font-size: 0.9rem;
     }
     
@@ -253,54 +259,52 @@
     .social-btn {
         display: flex;
         align-items: center;
-        padding: 12px 15px;
+        justify-content: center;
+        gap: 10px;
+        padding: 12px;
         border-radius: 10px;
         text-decoration: none;
-        font-weight: 500;
+        font-weight: 600;
         transition: all 0.3s ease;
     }
     
-    .social-btn i {
-        margin-right: 10px;
-        font-size: 1.2rem;
-    }
-    
     .google-btn {
-        background: rgba(255, 255, 255, 0.9);
-        color: #333;
+        background: #ffffff;
+        color: #444444;
     }
     
     .google-btn:hover {
-        background: #ffffff;
+        background: #f1f1f1;
         transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(255, 255, 255, 0.2);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     }
     
     .phone-btn {
-        background: rgba(0, 0, 0, 0.2);
+        background: var(--primary-light);
         color: var(--white);
-        border: 1px solid rgba(255, 255, 255, 0.2);
     }
     
     .phone-btn:hover {
-        background: rgba(0, 0, 0, 0.3);
+        background: #0062c4;
         transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 80, 157, 0.3);
     }
     
     .register-link {
         text-align: center;
-        font-size: 0.95rem;
+        margin-top: 1.5rem;
+        color: rgba(255, 255, 255, 0.8);
     }
     
     .register-link a {
         color: var(--accent);
-        font-weight: 600;
         text-decoration: none;
+        font-weight: 600;
         transition: all 0.3s ease;
     }
     
     .register-link a:hover {
-        text-decoration: underline;
+        color: var(--white);
     }
     
     .login-features {
@@ -312,90 +316,66 @@
     }
     
     .feature-card {
-        background: rgba(0, 41, 107, 0.05);
+        background: var(--white);
         border-radius: 15px;
         padding: 1.5rem;
-        border: 1px solid rgba(0, 41, 107, 0.1);
+        box-shadow: var(--card-shadow);
         transition: all 0.3s ease;
     }
     
     .feature-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
-        background: rgba(0, 41, 107, 0.08);
     }
     
     .feature-icon {
         width: 50px;
         height: 50px;
-        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-        border-radius: 50%;
+        background: var(--primary-light);
+        border-radius: 12px;
         display: flex;
-        justify-content: center;
         align-items: center;
+        justify-content: center;
         margin-bottom: 1rem;
-        color: var(--accent);
-        font-size: 1.3rem;
+    }
+    
+    .feature-icon i {
+        font-size: 1.5rem;
+        color: var(--white);
     }
     
     .feature-card h3 {
         color: var(--primary-dark);
         margin-bottom: 0.5rem;
-        font-size: 1.3rem;
     }
     
     .feature-card p {
         color: var(--text-light);
-        font-size: 0.95rem;
+        font-size: 0.9rem;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
     
     @media (max-width: 768px) {
         .login-container {
-            padding: 1.5rem 1rem;
+            padding: 2rem 1rem;
         }
         
         .login-card {
-            padding: 1.5rem;
+            padding: 2rem;
         }
         
         .login-header h1 {
             font-size: 2rem;
         }
     }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
 </style>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Add animation to form elements
-        const formElements = document.querySelectorAll('.form-group, .login-btn, .social-btn');
-        formElements.forEach((element, index) => {
-            element.style.opacity = '0';
-            element.style.transform = 'translateY(20px)';
-            setTimeout(() => {
-                element.style.transition = 'all 0.5s ease';
-                element.style.opacity = '1';
-                element.style.transform = 'translateY(0)';
-            }, 100 * (index + 1));
-        });
-        
-        // Add hover effects to feature cards
-        const featureCards = document.querySelectorAll('.feature-card');
-        featureCards.forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-10px)';
-                this.style.boxShadow = '0 15px 30px rgba(0, 0, 0, 0.1)';
-            });
-            
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(-5px)';
-                this.style.boxShadow = '0 10px 20px rgba(0, 0, 0, 0.05)';
-            });
-        });
-    });
-</script>
 {% endblock %}

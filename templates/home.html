@@ -1,121 +1,855 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Home{% endblock %}
 
 {% block content %}
 <div class="welcome-section">
-    <h1>Welcome to TaxKar</h1>
+    <div class="welcome-content">
+        <div class="brand-section" style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem; animation: fadeInUp 0.8s ease-out;">
+            <img src="{% static 'images/logo.png' %}" alt="TaxKar Logo" style="width: 300px; height: 300px; filter: brightness(1.2);">
+            <h1 style="font-size: 3rem; color: var(--white); margin: 0; font-weight: 800;">TaxKar</h1>
+        </div>
+        <h2 style="font-size: 2.2rem; margin-bottom: 1.5rem;">Because Money Doesn't Come With Instructions</h2>
+        <p>Sure, dealing with your finances can be intimidating.</p>
+        <p>That's why we take the time to listen to you, learn your goals and then create your tax plan using innovative solutions that reflect the latest academic research.</p>
+    </div>
+    <div class="welcome-image">
+        <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80" alt="Tax Planning" class="hero-image">
+    </div>
 </div>
-
 <div class="services-grid">
     <a href="{% url 'calculate_tax' %}" class="service-box">
+        <div class="corner corner-top-left"></div>
+        <div class="corner corner-top-right"></div>
+        <div class="corner corner-bottom-left"></div>
+        <div class="corner corner-bottom-right"></div>
+        <div class="shine"></div>
         <h2>Income Tax</h2>
         <p>Calculate your income tax under both old and new regimes</p>
     </a>
 
     <a href="{% url 'calculate_gst' %}" class="service-box">
+        <div class="corner corner-top-left"></div>
+        <div class="corner corner-top-right"></div>
+        <div class="corner corner-bottom-left"></div>
+        <div class="corner corner-bottom-right"></div>
+        <div class="shine"></div>
         <h2>GST</h2>
         <p>Calculate GST for your transactions</p>
     </a>
 
     <a href="{% url 'converter' %}" class="service-box">
+        <div class="corner corner-top-left"></div>
+        <div class="corner corner-top-right"></div>
+        <div class="corner corner-bottom-left"></div>
+        <div class="corner corner-bottom-right"></div>
+        <div class="shine"></div>
         <h2>Forex</h2>
         <p>Convert currencies and view historical rates</p>
     </a>
 
     <a href="{% url 'stock_tracker' %}" class="service-box">
+        <div class="corner corner-top-left"></div>
+        <div class="corner corner-top-right"></div>
+        <div class="corner corner-bottom-left"></div>
+        <div class="corner corner-bottom-right"></div>
+        <div class="shine"></div>
         <h2>Stock Market</h2>
         <p>Track stock prices and predict future trends with ARIMA model</p>
     </a>
 </div>
+<div class="testimonials-section">
+    <h2 class="testimonial-heading">What Our Clients Say</h2>
+    <div class="testimonials-container">
+        <div class="testimonial-card active">
+            <div class="testimonial-content">
+                <p>"TaxKar helped me save significantly on my income tax returns. Their expertise and personalized approach made the entire process smooth and hassle-free."</p>
+            </div>
+            <div class="testimonial-author">
+                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Client" class="author-img">
+                <div class="author-info">
+                    <h4>Rajesh Kumar</h4>
+                    <p>Business Owner</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="testimonial-card">
+            <div class="testimonial-content">
+                <p>"The GST calculator tool saved me hours of manual calculations. The team at TaxKar is responsive and provides excellent guidance on tax compliance matters."</p>
+            </div>
+            <div class="testimonial-author">
+                <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Client" class="author-img">
+                <div class="author-info">
+                    <h4>Priya Sharma</h4>
+                    <p>Entrepreneur</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="testimonial-card">
+            <div class="testimonial-content">
+                <p>"As someone who invests in stocks, TaxKar's stock tracking tool has been invaluable. Their tax planning advice has helped me maximize my investment returns."</p>
+            </div>
+            <div class="testimonial-author">
+                <img src="https://randomuser.me/api/portraits/men/67.jpg" alt="Client" class="author-img">
+                <div class="author-info">
+                    <h4>Vikram Singh</h4>
+                    <p>Investor</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <style>
-    .welcome-section {
-        margin-bottom: 3rem;
-        animation: fadeIn 0.8s ease-out;
-    }
 
-    .welcome-section h1 {
-        font-size: 2.5rem;
-        background: var(--gradient);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 1rem;
-    }
-
-    .services-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 2rem;
-        padding: 1rem;
-        animation: fadeInUp 0.8s ease-out;
-    }
-
-    .service-box {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(0, 0, 0, 0.9);
-        border-radius: 20px;
-        padding: 2rem;
-        text-decoration: none;
-        color: var(--text);
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
+    .testimonials-section {
+        padding: 4rem 2rem;
+        background: linear-gradient(to right, rgba(0, 41, 107, 0.05), rgba(0, 80, 157, 0.1));
     }
     
-
-    .service-box:hover {
-        transform: translateY(-5px);
-        background: rgba(39, 84, 138,0.25);
-        border-color: var(--secondary);
-        box-shadow: 0 10px 20px rgba(255, 139, 61, 0.1);
+    .testimonial-heading {
+        text-align: center;
+        font-size: 2.5rem;
+        color: var(--primary-dark);
+        margin-bottom: 3rem;
     }
-
-    .service-box h2 {
-        font-size: 1.5rem;
-        margin-bottom: 1rem;
-        color: var(--secondary);
+    
+    .testimonials-container {
+        position: relative;
+        max-width: 800px;
+        height: 400px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
-
-    .service-box p {
-        font-size: 0.95rem;
-        opacity: 0.8;
+    
+    .testimonial-card {
+        position: absolute;
+        width: 100%;
+        max-width: 600px;
+        background: var(--white);
+        padding: 2rem;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        opacity: 0;
+        visibility: hidden;
+        transform: scale(0.8) translateY(30px);
+        transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .testimonial-card.active {
+        opacity: 1;
+        visibility: visible;
+        transform: scale(1) translateY(0);
+    }
+    
+    .testimonial-content {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .testimonial-content p {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: var(--text-dark);
+        font-style: italic;
+    }
+    
+    .testimonial-author {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+    
+    .author-img {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--accent);
+    }
+    
+    .author-info {
+        text-align: left;
+    }
+    
+    .author-info h4 {
+        color: var(--primary-dark);
         margin: 0;
+        font-size: 1.1rem;
+    }
+    
+    .author-info p {
+        color: var(--text-light);
+        margin: 0;
+        font-size: 0.9rem;
     }
 
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
+    /* Welcome section */
+    .welcome-section {
+        min-height: 100vh;
+        display: flex;
+        position: relative;
+        margin-top: 0;
+        padding-top: 0px;
+        background: linear-gradient(to right, rgba(0, 41, 107, 0.95), rgba(0, 80, 157, 0.9));
+    }
+
+    .welcome-content {
+        width: 40%;
+        color: var(--white);
+        padding: 5rem 3rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        animation: slideInLeft 1s ease-out;
+        position: relative;
+        z-index: 1;
+    }
+
+    .welcome-content:after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 1px;
+        height: 100%;
+        background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.2), transparent);
+    }
+
+    .welcome-content h1 {
+        font-size: 3.2rem;
+        margin-bottom: 2rem;
+        line-height: 1.2;
+        font-weight: 800;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        position: relative;
+    }
+
+    .welcome-content h1:after {
+        content: '';
+        position: absolute;
+        bottom: -15px;
+        left: 0;
+        width: 80px;
+        height: 4px;
+        background: var(--accent);
+        border-radius: 2px;
+    }
+
+    .welcome-content p {
+        margin-bottom: 1.5rem;
+        line-height: 1.8;
+        font-size: 1.15rem;
+        opacity: 0.9;
+    }
+
+    .welcome-image {
+        width: 60%;
+        position: relative;
+        overflow: hidden;
+        animation: slideInRight 1s ease-out;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .welcome-image:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to right, rgba(0, 41, 107, 0.3), transparent);
+        z-index: 1;
+    }
+
+    .hero-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.8s ease;
+        filter: brightness(0.9);
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 0;
+    }
+
+    /* Add this to ensure the image is visible or has a fallback */
+    .hero-image[src=""], 
+    .hero-image:not([src]) {
+        display: none;
+    }
+
+    .welcome-image:hover .hero-image {
+        transform: scale(1.05);
+    }
+.services-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 9rem;
+    padding: 10rem 2rem 4rem;
+    max-width: 100%;
+    margin: 0 auto;
+    animation: fadeInUp 1s ease-out;
+    position: relative;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-light) var(--background);
+}
+
+.services-grid:before {
+    content: 'Our Services';
+    position: absolute;
+    top: 3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    text-align: center;
+    width: 100%;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.services-grid:after {
+    content: '';
+    position: absolute;
+    top: 7rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: var(--accent-dark);
+    border-radius: 2px;
+    box-shadow: 0 2px 4px rgba(253, 197, 0, 0.3);
+}
+
+.services-grid::-webkit-scrollbar {
+    height: 8px;
+}
+
+.services-grid::-webkit-scrollbar-track {
+    background: var(--background);
+    border-radius: 10px;
+}
+
+.services-grid::-webkit-scrollbar-thumb {
+    background-color: var(--primary-light);
+    border-radius: 10px;
+}
+
+.service-box {
+    flex: 0 0 300px;
+    /* Other service box styles remain the same */
+}
+
+/* Media query updates for one-line services */
+@media (max-width: 768px) {
+    .services-grid {
+        padding: 5rem 1.5rem 3rem;
+        gap: 1.5rem;
+    }
+    
+    .service-box {
+        flex: 0 0 260px;
+    }
+}
+
+.service-box {
+    background: linear-gradient(145deg, #ffffff, #f5f5f5);
+    border-radius: 15px;
+    padding: 3rem 2rem;
+    text-decoration: none;
+    color: var(--text-dark);
+    transition: all 0.5s ease;
+    box-shadow: var(--card-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(0, 41, 107, 0.05);
+    animation: scaleIn 0.6s ease-out forwards;
+    transform-origin: center bottom;
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23003f88' fill-opacity='0.02' fill-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+.service-box:hover {
+    transform: translateY(-15px);
+    box-shadow: var(--hover-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    border-color: var(--accent);
+    background: linear-gradient(to bottom, var(--white), rgba(253, 197, 0, 0.05));
+}
+
+.service-box h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1.2rem;
+    color: var(--primary);
+    position: relative;
+    padding-bottom: 0.8rem;
+    font-weight: 700;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.service-box h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: var(--accent-dark);
+    border-radius: 2px;
+    box-shadow: 0 1px 2px rgba(253, 197, 0, 0.3);
+}
+
+.service-box p {
+    font-size: 1.1rem;
+    color: var(--text-light);
+    margin: 0;
+    line-height: 1.7;
+    position: relative;
+    z-index: 2;
+}
+
+/* Enhanced icons and decorative elements */
+.service-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: linear-gradient(to right, var(--primary), var(--primary-light));
+    transition: height 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 41, 107, 0.2);
+}
+
+.service-box:hover::before {
+    height: 8px;
+}
+
+.service-box::after {
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    font-size: 5rem;
+    color: rgba(0, 41, 107, 0.03);
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    transition: all 0.3s ease;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.05);
+    z-index: 1;
+}
+
+.service-box:hover::after {
+    color: rgba(253, 197, 0, 0.08);
+    transform: scale(1.2) rotate(10deg);
+}
+
+/* Add corner decorations */
+.service-box .corner {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border-color: var(--primary-light);
+    border-style: solid;
+    border-width: 0;
+    transition: all 0.3s ease;
+    opacity: 0.3;
+}
+
+.service-box:hover .corner {
+    opacity: 0.6;
+    width: 40px;
+    height: 40px;
+}
+
+.service-box .corner-top-left {
+    top: 15px;
+    left: 15px;
+    border-top-width: 2px;
+    border-left-width: 2px;
+    border-top-left-radius: 8px;
+}
+
+.service-box .corner-top-right {
+    top: 15px;
+    right: 15px;
+    border-top-width: 2px;
+    border-right-width: 2px;
+    border-top-right-radius: 8px;
+}
+
+.service-box .corner-bottom-left {
+    bottom: 15px;
+    left: 15px;
+    border-bottom-width: 2px;
+    border-left-width: 2px;
+    border-bottom-left-radius: 8px;
+}
+
+.service-box .corner-bottom-right {
+    bottom: 15px;
+    right: 15px;
+    border-bottom-width: 2px;
+    border-right-width: 2px;
+    border-bottom-right-radius: 8px;
+}
+
+/* Add a subtle shine effect */
+.service-box .shine {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(to bottom, 
+        rgba(255, 255, 255, 0.1) 0%, 
+        rgba(255, 255, 255, 0.05) 40%, 
+        rgba(255, 255, 255, 0) 100%);
+    border-radius: 15px 15px 100px 100px;
+    pointer-events: none;
+}
+    
+
+    @media (max-width: 1200px) {
+        .welcome-content h1 {
+            font-size: 2.8rem;
         }
-        to {
-            opacity: 1;
+        
+        .welcome-content {
+            padding: 4rem 2rem;
         }
     }
 
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
+    @media (max-width: 1024px) {
+        .nav-menu .nav-link {
+            margin-left: 1.5rem;
         }
-        to {
-            opacity: 1;
-            transform: translateY(0);
+
+        .welcome-content {
+            width: 45%;
+        }
+        
+        .welcome-image {
+            width: 55%;
+        }
+        
+        .welcome-content h1 {
+            font-size: 2.5rem;
         }
     }
 
-    @media (max-width: 768px) {
-        .services-grid {
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-            padding: 0.5rem;
-        }
+    /* About Section */
+.about-section {
+    display: flex;
+    background: var(--white);
+    padding: 6rem 2rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
 
-        .service-box {
-            padding: 1.5rem;
-        }
+.about-content {
+    flex: 1;
+    padding: 2rem 3rem 2rem 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    animation: slideInLeft 1s ease-out;
+}
+
+.about-content h2 {
+    font-size: 2.5rem;
+    color: var(--primary-dark);
+    margin-bottom: 1.5rem;
+    position: relative;
+    padding-bottom: 1rem;
+}
+
+.about-content h2:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 80px;
+    height: 4px;
+    background: var(--accent-dark);
+    border-radius: 2px;
+    box-shadow: 0 2px 4px rgba(253, 197, 0, 0.3);
+}
+
+.about-content p {
+    font-size: 1.1rem;
+    color: var(--text-light);
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
+}
+
+.about-btn {
+    display: inline-block;
+    background: var(--primary);
+    color: var(--white);
+    padding: 0.8rem 2rem;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 41, 107, 0.2);
+    align-self: flex-start;
+    margin-top: 1rem;
+}
+
+.about-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 41, 107, 0.3);
+}
+
+.about-image {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    animation: slideInRight 1s ease-out;
+}
+
+.about-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: transform 0.8s ease;
+}
+
+.about-image:hover .about-img {
+    transform: scale(1.05);
+}
+
+/* Testimonials Section - Single Card with Auto Cycling */
+.testimonials-section {
+    background: linear-gradient(to right, rgba(0, 41, 107, 0.95), rgba(0, 80, 157, 0.9));
+    padding: 6rem 2rem;
+    position: relative;
+}
+
+.testimonial-heading {
+    text-align: center;
+    font-size: 2.5rem;
+    color: var(--white);
+    margin-bottom: 3rem;
+    position: relative;
+    padding-bottom: 1rem;
+}
+
+.testimonial-heading:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: var(--accent-dark);
+    border-radius: 2px;
+    box-shadow: 0 2px 4px rgba(253, 197, 0, 0.3);
+}
+
+.testimonials-container {
+    position: relative;
+    max-width: 600px;
+    height: 300px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.testimonial-card {
+    position: absolute;
+    width: 100%;
+    background: var(--white);
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: var(--card-shadow);
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.8) translateY(30px);
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+}
+
+.testimonial-card:nth-child(1) {
+    animation: testimonialCycle 15s infinite 0s;
+}
+
+.testimonial-card:nth-child(2) {
+    animation: testimonialCycle 15s infinite 5s;
+}
+
+.testimonial-card:nth-child(3) {
+    animation: testimonialCycle 15s infinite 10s;
+}
+
+@keyframes testimonialCycle {
+    0%, 5% {
+        opacity: 0;
+        visibility: hidden;
+        transform: scale(0.8) translateY(30px);
     }
+    10%, 30% {
+        opacity: 1;
+        visibility: visible;
+        transform: scale(1) translateY(0);
+    }
+    35%, 100% {
+        opacity: 0;
+        visibility: hidden;
+        transform: scale(0.8) translateY(-30px);
+    }
+}
+
+.testimonial-content {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.testimonial-content p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: var(--text-dark);
+    font-style: italic;
+}
+
+.testimonial-content::before {
+    content: '\201C';
+    font-family: Georgia, serif;
+    position: absolute;
+    top: -30px;
+    left: 0;
+    font-size: 5rem;
+    color: rgba(0, 41, 107, 0.1);
+    line-height: 1;
+}
+
+.testimonial-author {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.author-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--accent);
+}
+
+.author-info {
+    text-align: left;
+}
+
+.author-info h4 {
+    color: var(--primary-dark);
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.author-info p {
+    color: var(--text-light);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .testimonials-container {
+        height: 350px;
+    }
+    
+    .testimonial-card {
+        padding: 1.5rem;
+    }
+    
+    .testimonial-content p {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .testimonials-container {
+        height: 400px;
+    }
+    
+    .testimonial-heading {
+        font-size: 2rem;
+    }
+}
+@media (max-width: 768px) {
+    .about-content {
+        padding: 2rem 1.5rem;
+    }
+    
+    .about-content h2 {
+        font-size: 2rem;
+    }
+    
+    .about-image {
+        height: 300px;
+    }
+    
+    .testimonial-heading {
+        font-size: 2rem;
+    }
+    
+    .testimonial-card {
+        flex: 0 0 280px;
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .about-content h2 {
+        font-size: 1.8rem;
+    }
+    
+    .about-image {
+        height: 250px;
+    }
+    
+    .testimonial-card {
+        flex: 0 0 260px;
+    }
+}
 </style>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const testimonials = document.querySelectorAll('.testimonial-card');
+        let currentIndex = 0;
+    
+        function showNextTestimonial() {
+            testimonials[currentIndex].classList.remove('active');
+            currentIndex = (currentIndex + 1) % testimonials.length;
+            testimonials[currentIndex].classList.add('active');
+        }
+    
+        setInterval(showNextTestimonial, 5000);
+    });
+</script>
 {% endblock %}

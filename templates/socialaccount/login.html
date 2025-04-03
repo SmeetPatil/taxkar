@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+{% load allauth %}
+
+{% block title %}{% trans "Sign In Via Google" %}{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="google-login-card">
+        <img src="https://img.icons8.com/color/48/000000/google-logo.png" alt="Google Logo" class="google-logo">
+        
+        {% if process == "connect" %}
+            <h2>{% blocktrans with provider.name as provider %}Connect {{ provider }}{% endblocktrans %}</h2>
+            <p class="login-description">{% blocktrans with provider.name as provider %}You are about to connect a new third-party account from {{ provider }}.{% endblocktrans %}</p>
+        {% else %}
+            <h2>{% blocktrans with provider.name as provider %}Sign In Via {{ provider }}{% endblocktrans %}</h2>
+            <p class="login-description">{% blocktrans with provider.name as provider %}You are about to sign in using a third-party account from {{ provider }}.{% endblocktrans %}</p>
+        {% endif %}
+        
+        <form method="post" class="google-login-form">
+            {% csrf_token %}
+            <button type="submit" class="btn google-continue-btn">{% trans "Continue with Google" %}</button>
+        </form>
+        
+        <div class="login-options">
+            <p>Or use other login methods:</p>
+            <div class="login-buttons">
+                <a href="{% url 'login' %}" class="newsletter-btn">Email Login</a>
+                <a href="{% url 'phone_login' %}" class="newsletter-btn">Phone Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .auth-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 70vh;
+    }
+    
+    .google-login-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        width: 100%;
+        max-width: 450px;
+        text-align: center;
+    }
+    
+    .google-logo {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 1rem;
+    }
+    
+    .login-description {
+        color: #666;
+        margin-bottom: 2rem;
+    }
+    
+    .google-login-form {
+        margin-bottom: 2rem;
+    }
+    
+    .google-continue-btn {
+        background: #4285F4;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 30px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        transition: background 0.3s ease;
+    }
+    
+    .google-continue-btn:hover {
+        background: #3367D6;
+    }
+    
+    .login-options {
+        border-top: 1px solid #eee;
+        padding-top: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    .login-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 1rem;
+    }
+    
+    .login-buttons .btn {
+        flex: 1;
+        padding: 10px;
+        border-radius: 8px;
+        background: var(--primary);
+        color: var(--text);
+        text-decoration: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .login-buttons .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .phone-btn {
+        background: var(--secondary) !important;
+    }
+</style>
+{% endblock %}

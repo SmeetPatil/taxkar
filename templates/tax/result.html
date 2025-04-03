@@ -3,35 +3,91 @@
 {% block title %}Tax Calculation Result{% endblock %}
 
 {% block content %}
-<h2>Tax Calculation Results</h2>
-<div class="result-container">
-    <table class="table">
-        <tr>
-            <th>Description</th>
-            <th>Amount</th>
-        </tr>
-        <tr>
-            <td>Total Tax Payable</td>
-            <td>₹ {{ tax }}</td>
-        </tr>
-        {% for key, value in deductions.items %}
-        <tr>
-            <td>{{ key }} Deduction</td>
-            <td>₹ {{ value }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-    {% if user.is_authenticated %}
-    <a href="#" class="btn" onclick="window.print()">Download PDF</a>
-    {% endif %}
-    <a href="{% url 'calculate_tax' %}" class="btn">Calculate Another</a>
-    <br>
-    <br>
-    <br>
-    <form method="post">
-        {% csrf_token %}
-        <input type="hidden" name="save" value="true">
-        <button type="submit" class="btn btn-primary">Save Calculation</button>
-    </form>
+<div class="result-container" style="max-width: 800px; margin: 0 auto; padding: 2rem; animation: fadeInUp 0.8s ease-out;">
+    <h2 class="section-title" style="color: var(--primary-dark); text-align: center; margin-bottom: 2rem;">Income Tax Calculation Results</h2>
+    
+    <div class="card" style="background: var(--white); border-radius: 15px; padding: 2rem; box-shadow: var(--card-shadow);">
+        <div class="result-summary" style="margin-bottom: 2rem; text-align: center;">
+            <h3 style="color: var(--primary); margin-bottom: 1rem;">Tax Summary</h3>
+            <div style="font-size: 2rem; color: var(--primary-dark); font-weight: 700; margin-bottom: 0.5rem;">
+                ₹ {{ tax }}
+            </div>
+            <div style="color: var(--text-light);">Total Tax Payable</div>
+        </div>
+
+        <div class="calculation-details" style="margin-bottom: 2rem;">
+            <h4 style="color: var(--primary); margin-bottom: 1rem;">Income Details</h4>
+            <div style="background: rgba(0, 41, 107, 0.05); border-radius: 10px; padding: 1.5rem;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr style="border-bottom: 1px solid rgba(0, 41, 107, 0.1);">
+                        <td style="padding: 1rem; color: var(--text-dark);">Gross Annual Income</td>
+                        <td style="padding: 1rem; text-align: right; font-weight: 600;">₹ {{ gross_income }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem; color: var(--text-dark);">Tax Regime</td>
+                        <td style="padding: 1rem; text-align: right; font-weight: 600;">{{ regime }} Regime</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        {% if regime == 'OLD' %}
+        <div class="deductions-section" style="margin-bottom: 2rem;">
+            <h4 style="color: var(--primary); margin-bottom: 1rem;">Deductions & Exemptions</h4>
+            <div style="background: rgba(0, 41, 107, 0.05); border-radius: 10px; padding: 1.5rem;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    {% for key, value in deductions.items %}
+                    <tr style="border-bottom: 1px solid rgba(0, 41, 107, 0.1);">
+                        <td style="padding: 1rem; color: var(--text-dark);">{{ key }}</td>
+                        <td style="padding: 1rem; text-align: right; font-weight: 600;">₹ {{ value }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr>
+                        <td style="padding: 1rem; color: var(--primary-dark); font-weight: 700;">Total Deductions</td>
+                        <td style="padding: 1rem; text-align: right; color: var(--primary-dark); font-weight: 700;">₹ {{ total_deductions }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="tax-calculation" style="margin-bottom: 2rem;">
+            <h4 style="color: var(--primary); margin-bottom: 1rem;">Tax Calculation Breakdown</h4>
+            <div style="background: rgba(0, 41, 107, 0.05); border-radius: 10px; padding: 1.5rem;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    {% for slab in tax_slabs %}
+                    <tr style="border-bottom: 1px solid rgba(0, 41, 107, 0.1);">
+                        <td style="padding: 1rem; color: var(--text-dark);">{{ slab.range }}</td>
+                        <td style="padding: 1rem; text-align: right; font-weight: 600;">₹ {{ slab.tax }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% if surcharge %}
+                    <tr style="border-bottom: 1px solid rgba(0, 41, 107, 0.1);">
+                        <td style="padding: 1rem; color: var(--text-dark);">Surcharge ({{ surcharge_rate }}%)</td>
+                        <td style="padding: 1rem; text-align: right; font-weight: 600;">₹ {{ surcharge }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr style="border-bottom: 1px solid rgba(0, 41, 107, 0.1);">
+                        <td style="padding: 1rem; color: var(--text-dark);">Health & Education Cess (4%)</td>
+                        <td style="padding: 1rem; text-align: right; font-weight: 600;">₹ {{ cess }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem; color: var(--primary-dark); font-weight: 700;">Total Tax Payable</td>
+                        <td style="padding: 1rem; text-align: right; color: var(--primary-dark); font-weight: 700;">₹ {{ tax }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="action-buttons" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <button onclick="window.print()" class="btn" style="flex: 1; background: var(--accent); color: var(--primary-dark); padding: 1rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                <i class="fas fa-download"></i> Download PDF
+            </button>
+            
+            <a href="{% url 'calculate_tax' %}" class="btn" style="flex: 1; background: var(--primary-light); color: var(--white); padding: 1rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-align: center; text-decoration: none;">
+                <i class="fas fa-calculator"></i> Calculate Again
+            </a>
+        </div>
+    </div>
 </div>
 {% endblock %}

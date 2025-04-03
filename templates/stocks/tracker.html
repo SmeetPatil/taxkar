@@ -3,254 +3,333 @@
 {% block title %}Stock Tracker & Predictor - TaxKar{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="stock-container">
     <h1>Stock Tracker & Predictor</h1>
     <p class="current-date">{{ current_date }}</p>
-    
+
     <div class="stock-search-form">
-        <form method="post">
+        <form method="post" id="stock-form">
             {% csrf_token %}
             <div class="form-group">
-                <label for="symbol">Enter Stock Symbol</label>
-                <input class="stock-input" type="text" id="symbol" name="symbol" placeholder="e.g., AAPL, MSFT, RELIANCE.BSE, TCS.NSE" required>
-                <button type="submit" class="convert-btn">Search</button>
+                <div class="stock-input">
+                    <label for="symbol">Enter Stock Symbol</label>
+                    <input type="text" id="symbol" name="symbol" placeholder="e.g., AAPL, MSFT, RELIANCE.BSE, TCS.NSE" required>
+                </div>
+                <button type="submit" class="search-btn">
+                    <span class="btn-text">Search</span>
+                    <span class="loading-spinner"></span>
+                </button>
             </div>
         </form>
-        
-        {% if user.is_authenticated and recent_searches %}
-        <div class="recent-searches">
-            <h3>Recent Searches</h3>
-            <div class="search-tags">
-                {% for search in recent_searches %}
-                <form method="post" class="inline-form">
-                    {% csrf_token %}
-                    <input type="hidden" name="symbol" value="{{ search.symbol }}">
-                    <button type="submit" class="tag-btn">{{ search.symbol }}</button>
-                </form>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
     </div>
-    
+
     {% if error %}
     <div class="error-message">
-        {{ error }}
+        <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <p>{{ error }}</p>
     </div>
     {% endif %}
     
     {% if symbol %}
     <div class="stock-info">
-        <h2>{{ symbol }} Stock Information</h2>
-        <div class="price-info">
-            <div class="current-price">
-                <span class="label">Current Price:</span>
-                <span class="value">${{ current_price|floatformat:2 }}</span>
-            </div>
-            <div class="price-change {% if price_change >= 0 %}positive{% else %}negative{% endif %}">
-                <span class="value">
-                    {% if price_change >= 0 %}+{% endif %}${{ price_change|floatformat:2 }} ({{ price_change_percent|floatformat:2 }}%)
-                </span>
+        <div class="stock-header">
+            <h2>{{ symbol }} Stock Information</h2>
+            <div class="stock-badge">
+                <span class="badge-text">LIVE</span>
             </div>
         </div>
         
-        <div class="chart-container">
-            <div id="prediction-chart" style="width:100%; height:500px;"></div>
-            <p class="disclaimer">Note: Stock predictions are estimates and should not be used as the sole basis for investment decisions.</p>
-        </div>
-        
-        {% if prediction_data %}
-        <div class="prediction-table">
-            <h3>Detailed Prediction Data</h3>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Predicted Price</th>
-                        <th>Lower Bound</th>
-                        <th>Upper Bound</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for pred in prediction_data %}
-                    <tr>
-                        <td>{{ pred.date }}</td>
-                        <td>${{ pred.predicted_price|floatformat:2 }}</td>
-                        <td>${{ pred.lower_bound|floatformat:2 }}</td>
-                        <td>${{ pred.upper_bound|floatformat:2 }}</td>
-                    </tr>
+        <div class="stock-content">
+            <div class="price-card">
+                <div class="price-header">Current Price</div>
+                <div class="price-value">${{ current_price|floatformat:2 }}</div>
+                <div class="price-change {% if price_change >= 0 %}positive{% else %}negative{% endif %}">
+                    <span class="change-value">
+                        {% if price_change >= 0 %}+{% endif %}${{ price_change|floatformat:2 }}
+                    </span>
+                    <span class="change-percent">
+                        ({{ price_change_percent|floatformat:2 }}%)
+                        {% if price_change >= 0 %}
+                        <i class="fas fa-arrow-up"></i>
+                        {% else %}
+                        <i class="fas fa-arrow-down"></i>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            {% if prediction_data %}
+            <div class="chart-section">
+                <div class="chart-header">
+                    <h3>Stock Price Prediction</h3>
+                    <div class="chart-controls">
+                        <button class="time-range-btn active" data-range="7">7D</button>
+                        <button class="time-range-btn" data-range="30">1M</button>
+                        <button class="time-range-btn" data-range="90">3M</button>
+                        <button class="time-range-btn" data-range="180">6M</button>
+                    </div>
+                </div>
+                <div id="prediction-chart" class="chart-container"></div>
+                <p class="disclaimer">Note: Stock predictions are estimates and should not be used as the sole basis for investment decisions.</p>
+            </div>
+            
+            <div class="prediction-data">
+                <h3>Prediction Summary</h3>
+                <div class="prediction-cards">
+                    {% for pred in prediction_data|slice:":3" %}
+                    <div class="pred-card">
+                        <div class="pred-date">{{ pred.date }}</div>
+                        <div class="pred-price">${{ pred.predicted_price|floatformat:2 }}</div>
+                        <div class="pred-range">
+                            <span class="range-low">${{ pred.lower_bound|floatformat:2 }}</span>
+                            <span class="range-separator">-</span>
+                            <span class="range-high">${{ pred.upper_bound|floatformat:2 }}</span>
+                        </div>
+                    </div>
                     {% endfor %}
-                </tbody>
-            </table>
+                </div>
+                
+                <div class="prediction-table-container">
+                    <h3>Detailed Prediction Data</h3>
+                    <table class="prediction-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Predicted Price</th>
+                                <th>Lower Bound</th>
+                                <th>Upper Bound</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pred in prediction_data %}
+                            <tr>
+                                <td>{{ pred.date }}</td>
+                                <td>${{ pred.predicted_price|floatformat:2 }}</td>
+                                <td>${{ pred.lower_bound|floatformat:2 }}</td>
+                                <td>${{ pred.upper_bound|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
     {% endif %}
+    
+    <div class="stock-info-cards">
+        <div class="info-card">
+            <div class="info-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h3>What are Stocks?</h3>
+            <p>Stocks represent ownership shares in a company. When you buy a stock, you're purchasing a small piece of that company.</p>
+        </div>
+        <div class="info-card">
+            <div class="info-icon">
+                <i class="fas fa-brain"></i>
+            </div>
+            <h3>AI Predictions</h3>
+            <p>Our stock predictions use machine learning algorithms to analyze historical data and forecast potential future prices.</p>
+        </div>
+        <div class="info-card">
+            <div class="info-icon">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <h3>Investment Risk</h3>
+            <p>All investments involve risk. Past performance is not indicative of future results. Always do your own research.</p>
+        </div>
+    </div>
 </div>
 
-<script>
-    // Check if Plotly is loaded
-    if (typeof Plotly === 'undefined') {
-        console.error('Plotly library not loaded');
-        document.getElementById('prediction-chart').innerHTML = '<p class="error-message">Error: Plotly library is not loaded. Please refresh the page or contact support.</p>';
-    } else {
-        // Only handle prediction chart now
-        {% if pred_plot_data %}
-        document.addEventListener('DOMContentLoaded', function() {
-            try {
-                var predPlotData = {{ pred_plot_data|safe }};
-                
-                // Check if we have valid data
-                if (!predPlotData || !predPlotData.data || predPlotData.data.length === 0) {
-                    document.getElementById('prediction-chart').innerHTML = '<p class="error-message">Error: No prediction data available for chart rendering</p>';
-                    console.error('Invalid prediction plot data:', predPlotData);
-                    return;
-                }
-                
-                // Apply styling
-                predPlotData.layout.xaxis.gridcolor = 'rgba(255, 255, 255, 0.1)';
-                predPlotData.layout.yaxis.gridcolor = 'rgba(255, 255, 255, 0.1)';
-                
-                // Render the chart
-                Plotly.newPlot('prediction-chart', predPlotData.data, predPlotData.layout)
-                    .then(function() {
-                        console.log('Prediction chart rendered successfully');
-                    })
-                    .catch(function(error) {
-                        console.error('Error rendering prediction chart:', error);
-                        document.getElementById('prediction-chart').innerHTML = 
-                            '<p class="error-message">Error rendering prediction chart: ' + error.message + '</p>';
-                    });
-            } catch (error) {
-                console.error('Error processing prediction plot data:', error);
-                document.getElementById('prediction-chart').innerHTML = 
-                    '<p class="error-message">Error processing prediction chart data: ' + error.message + '</p>';
-            }
-        });
-        {% endif %}
-    }
-</script>
-
 <style>
-    .error-message {
-        color: #ff4e16;
-        background: rgba(255, 78, 22, 0.1);
-        padding: 1rem;
-        border-radius: 10px;
-        margin: 1rem 0;
+    .stock-container {
+        animation: fadeIn 0.8s ease-out;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
     }
-    
-    .prediction-table {
-        margin-top: 2rem;
-        overflow-x: auto;
-    }
-    
-    .prediction-table table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-    
-    .prediction-table th {
-        background-color: rgba(255, 139, 61, 0.1);
-        color: #FF8B3D;
-        font-weight: 600;
-        text-align: left;
-        padding: 12px 15px;
-    }
-    
-    .prediction-table td {
-        padding: 10px 15px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    }
-    
-    .prediction-table tr:last-child td {
-        border-bottom: none;
-    }
-    
-    .prediction-table tr:hover td {
-        background-color: rgba(255, 255, 255, 0.03);
-    }
-    
-    .inline-form {
+
+    .stock-container h1 {
+        font-size: 2.8rem;
+        color: var(--primary-dark);
+        margin-bottom: 1rem;
+        font-weight: 700;
+        text-align: center;
+        position: relative;
         display: inline-block;
-        margin-right: 5px;
+        left: 50%;
+        transform: translateX(-50%);
     }
     
-    .tag-btn {
-        background-color: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: white;
-        padding: 5px 10px;
-        border-radius: 15px;
-        cursor: pointer;
-        transition: background-color 0.3s;
+    .stock-container h1::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        border-radius: 2px;
     }
-    
-    .tag-btn:hover {
-        background-color: rgba(255, 255, 255, 0.2);
-    }
-    
-    .search-tags {
-        margin-top: 10px;
+
+    .current-date {
+        color: var(--text-dark);
+        opacity: 0.8;
+        margin-bottom: 2rem;
+        font-size: 1.3rem;
+        font-weight: bold;
+        text-align: center;
     }
 
     .stock-search-form {
-        background: linear-gradient(135deg, rgba(39, 84, 138, 0.15), rgba(24, 59, 78, 0.25));
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
         border-radius: 20px;
         padding: 2rem;
         margin-bottom: 2rem;
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(39, 84, 138, 0.2);
-        box-shadow: 0 4px 20px rgba(24, 59, 78, 0.1);
-        max-width: 600px;
-        margin: 0 auto;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: var(--card-shadow);
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
         display: flex;
         flex-direction: column;
-        align-items: center; /* Fixed alignment property */
-        text-align: center;
+        align-items: center;
+        gap: 1.5rem;
+        color: var(--white);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stock-search-form::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect fill="none" width="100" height="100"/><path fill="rgba(255,255,255,0.03)" d="M30,10L50,30L70,10L90,30L70,50L90,70L70,90L50,70L30,90L10,70L30,50L10,30L30,10Z"/></svg>');
+        background-size: 150px;
+        opacity: 0.5;
+        z-index: 0;
     }
 
     .form-group {
         display: flex;
         flex-direction: column;
         gap: 1.5rem;
-        align-items: center; /* Fixed alignment property */
+        align-items: center;
         width: 100%;
+        position: relative;
+        z-index: 1;
     }
 
     .stock-input {
         display: flex;
         flex-direction: column;
-        gap: 2.5rem;
+        gap: 0.5rem;
         align-items: center;
-        width: 90%; /* Increased from 75% to 90% */
-    }
-
-    input[type="text"] {
-        background: rgba(245, 238, 220, 0.95);
-        border: 2px solid rgba(39, 84, 138, 0.3);
-        border-radius: 10px;
-        padding: 0.8rem;
-        color: #183B4E;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-        width: 90%; /* Increased from default to 90% */
-        text-align: center;
-    }
-
-    /* Center the recent searches section */
-    .recent-searches {
-        margin-top: 1.5rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid rgba(39, 84, 138, 0.2);
-        text-align: center;
         width: 100%;
     }
 
+    input[type="text"] {
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        padding: 0.8rem;
+        color: var(--primary-dark);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        cursor: text;
+        width: 100%;
+        max-width: 500px;
+    }
+
+    input[type="text"]:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(255, 213, 0, 0.2);
+        transform: translateY(-2px);
+    }
+
+    label {
+        color: var(--white);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+
+    .search-btn {
+        background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+        color: var(--primary-dark);
+        border: none;
+        border-radius: 30px;
+        padding: 0.8rem 2rem;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 1rem;
+        width: 200px;
+        box-shadow: 0 4px 15px rgba(253, 197, 0, 0.2);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-left: auto;
+        margin-right: auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    .search-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(253, 197, 0, 0.3);
+    }
+    
+    .loading-spinner {
+        display: none;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(0, 41, 107, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--primary-dark);
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    .search-btn.loading .btn-text {
+        display: none;
+    }
+    
+    .search-btn.loading .loading-spinner {
+        display: inline-block;
+    }
+    
+    .recent-searches {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+        width: 100%;
+    }
+    
+    .recent-searches h3 {
+        color: var(--white);
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+    }
+    
     .search-tags {
         display: flex;
         flex-wrap: wrap;
@@ -258,79 +337,651 @@
         gap: 0.5rem;
         margin-top: 1rem;
     }
-
-    /* Center the error message */
-    .error-message {
-        text-align: center;
-        margin: 1rem auto;
-        max-width: 600px;
-    }
-
-    /* Center the stock info section */
-    .stock-info {
-        text-align: center;
-        margin: 2rem auto;
-        max-width: 800px;
-    }
-
-    input[type="text"]:focus {
-        border-color: #27548A;
-        box-shadow: 0 0 0 3px rgba(39, 84, 138, 0.2);
-        outline: none;
-    }
-
-    label {
-        color: #183B4E;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-
-    .convert-btn {
-        background: var(--gradient);
-        color: var(--text);
-        border: none;
-        border-radius: 10px;
-        padding: 1rem 2rem;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        margin-top: 1rem;
-        width: 50%;
-    }
-
-    .convert-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(255, 139, 61, 0.2);
-    }
-
-    /* Update recent searches styling */
-    .recent-searches {
-        margin-top: 1.5rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid rgba(39, 84, 138, 0.2);
-    }
-
-    .recent-searches h3 {
-        color: #DDA853;
-        margin-bottom: 1rem;
-        font-size: 1.1rem;
-    }
-
+    
     .tag-btn {
-        background: rgba(39, 84, 138, 0.1);
-        border: 1px solid rgba(39, 84, 138, 0.2);
-        color: #183B4E;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: var(--white);
         padding: 0.5rem 1rem;
         border-radius: 15px;
         cursor: pointer;
         transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+    
+    .tag-btn:hover {
+        background: var(--accent);
+        color: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+    
+    .inline-form {
+        display: inline-block;
         margin: 0.25rem;
     }
 
-    .tag-btn:hover {
-        background: rgba(39, 84, 138, 0.2);
-        transform: translateY(-2px);
+    .error-message {
+        background: rgba(255, 78, 22, 0.1);
+        border-left: 4px solid #ff4e16;
+        padding: 1rem;
+        border-radius: 10px;
+        margin: 1rem auto;
+        max-width: 700px;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: #ff4e16;
+        animation: fadeIn 0.5s ease-out;
+    }
+    
+    .error-icon {
+        font-size: 1.5rem;
+    }
+
+    .stock-info {
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        border-radius: 20px;
+        padding: 2rem;
+        margin-top: 2rem;
+        animation: fadeInUp 0.8s ease-out;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: var(--card-shadow);
+        max-width: 1100px;
+        margin-left: auto;
+        margin-right: auto;
+        color: var(--white);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stock-info::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(90deg, var(--accent-dark), var(--accent), var(--accent-dark));
+    }
+    
+    .stock-header {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+
+    .stock-header h2 {
+        font-size: 2rem;
+        color: var(--white);
+        margin: 0;
+        text-align: center;
+    }
+    
+    .stock-badge {
+        background: rgba(76, 175, 80, 0.2);
+        border: 1px solid rgba(76, 175, 80, 0.5);
+        color: #4CAF50;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    .stock-badge::before {
+        content: '';
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background-color: #4CAF50;
+        border-radius: 50%;
+        animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+    
+    .stock-content {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .price-card {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        max-width: 350px;
+        margin: 0 auto;
+        transition: all 0.3s ease;
+    }
+    
+    .price-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    .price-header {
+        font-size: 1.3rem;
+        color: var(--white);
+        margin-bottom: 1rem;
+        opacity: 0.9;
+    }
+    
+    .price-value {
+        font-size: 3rem;
+        font-weight: bold;
+        color: var(--accent);
+        margin-bottom: 1rem;
+        text-shadow: 0 2px 10px rgba(253, 197, 0, 0.3);
+    }
+    
+    .price-change {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .change-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+    
+    .change-percent {
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .price-change.positive .change-value,
+    .price-change.positive .change-percent {
+        color: #4CAF50;
+    }
+    
+    .price-change.negative .change-value,
+    .price-change.negative .change-percent {
+        color: #F44336;
+    }
+    
+    .chart-section {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+    }
+    
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .chart-header h3 {
+        font-size: 1.5rem;
+        color: var(--white);
+        margin: 0;
+    }
+    
+    .chart-controls {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .time-range-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        padding: 0.4rem 0.8rem;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--white);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .time-range-btn:hover, .time-range-btn.active {
+        background: var(--accent);
+        color: var(--primary-dark);
+    }
+    
+    .chart-container {
+        height: 400px;
+        width: 100%;
+        margin: 0 auto;
+    }
+    
+    .disclaimer {
+        margin-top: 1rem;
+        font-size: 0.9rem;
+        color: #F44336;
+        background: rgba(244, 67, 54, 0.1);
+        padding: 0.8rem;
+        border-radius: 8px;
+        font-weight: bold;
+        text-align: center;
+    }
+    
+    .prediction-data {
+        margin-top: 2rem;
+    }
+    
+    .prediction-data h3 {
+        font-size: 1.5rem;
+        color: var(--white);
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+    
+    .prediction-cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .pred-card {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 1.2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .pred-card:hover {
+        background: rgba(255, 255, 255, 0.12);
+        transform: translateY(-3px);
+    }
+    
+    .pred-date {
+        font-size: 1rem;
+        color: var(--white);
+        opacity: 0.8;
+        margin-bottom: 0.8rem;
+    }
+    
+    .pred-price {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--accent);
+        margin-bottom: 0.8rem;
+    }
+    
+    .pred-range {
+        font-size: 0.9rem;
+        color: var(--white);
+        opacity: 0.7;
+    }
+    
+    .range-separator {
+        margin: 0 0.3rem;
+    }
+    
+    .prediction-table-container {
+        margin-top: 2rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        padding: 1.5rem;
+        overflow-x: auto;
+    }
+    
+    .prediction-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .prediction-table th {
+        background-color: rgba(0, 41, 107, 0.3);
+        color: var(--accent);
+        font-weight: 600;
+        text-align: center;
+        padding: 12px 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .prediction-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--white);
+        text-align: center;
+    }
+    
+    .prediction-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .prediction-table tr:hover td {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .stock-info-cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-top: 3rem;
+    }
+    
+    .info-card {
+        background: linear-gradient(135deg, rgba(0, 41, 107, 0.05), rgba(0, 41, 107, 0.1));
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 41, 107, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .info-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--hover-shadow);
+    }
+    
+    .info-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, var(--primary-light), var(--primary));
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto 1rem;
+        color: var(--white);
+        font-size: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0, 41, 107, 0.2);
+    }
+    
+    .info-card h3 {
+        font-size: 1.2rem;
+        color: var(--primary-dark);
+        margin-bottom: 0.8rem;
+    }
+    
+    .info-card p {
+        font-size: 0.95rem;
+        color: var(--text-light);
+        line-height: 1.5;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 992px) {
+        .prediction-cards {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .stock-container {
+            padding: 1rem;
+        }
+        
+        .stock-search-form, .stock-info {
+            padding: 1.5rem;
+        }
+        
+        .stock-info-cards {
+            grid-template-columns: 1fr;
+        }
+        
+        .chart-header {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .chart-controls {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .prediction-cards {
+            grid-template-columns: 1fr;
+        }
+        
+        .chart-container {
+            height: 300px;
+        }
     }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Form submission with loading state
+        const form = document.getElementById('stock-form');
+        const searchBtn = document.querySelector('.search-btn');
+        
+        if (form) {
+            form.addEventListener('submit', function() {
+                searchBtn.classList.add('loading');
+                setTimeout(() => {
+                    searchBtn.classList.remove('loading');
+                }, 5000); // Fallback in case the page doesn't reload
+            });
+        }
+        
+        // Chart time range buttons
+        const timeRangeBtns = document.querySelectorAll('.time-range-btn');
+        
+        timeRangeBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                timeRangeBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Here you would typically filter the chart data based on the selected range
+                console.log(`Selected time range: ${this.dataset.range} days`);
+            });
+        });
+        
+        // Input animations
+        const inputs = document.querySelectorAll('input');
+        
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('focused');
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.classList.remove('focused');
+            });
+        });
+        
+        {% if pred_plot_data %}
+        // Update Plotly chart
+        try {
+            var predPlotData = {{ pred_plot_data|safe }};
+            
+            // Update layout colors for theme consistency
+            predPlotData.layout.paper_bgcolor = 'rgba(0, 41, 107, 0.05)';
+            predPlotData.layout.plot_bgcolor = 'rgba(0, 41, 107, 0.02)';
+            predPlotData.layout.font = {
+                color: '#ffffff',
+                family: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif'
+            };
+            
+            // Check if xaxis and yaxis exist before accessing their properties
+            if (predPlotData.layout.xaxis) {
+                predPlotData.layout.xaxis.gridcolor = 'rgba(255, 255, 255, 0.1)';
+                predPlotData.layout.xaxis.linecolor = 'rgba(255, 255, 255, 0.2)';
+                predPlotData.layout.xaxis.title = '';
+            }
+            
+            if (predPlotData.layout.yaxis) {
+                predPlotData.layout.yaxis.gridcolor = 'rgba(255, 255, 255, 0.1)';
+                predPlotData.layout.yaxis.linecolor = 'rgba(255, 255, 255, 0.2)';
+                predPlotData.layout.yaxis.title = 'Price ($)';
+            }
+            
+            predPlotData.layout.margin = {
+                l: 50,
+                r: 30,
+                t: 20,
+                b: 50
+            };
+            
+            predPlotData.layout.height = 400;
+            
+            // Add hover effects
+            predPlotData.layout.hoverlabel = {
+                bgcolor: '#00296b',
+                font: { color: '#ffffff' },
+                bordercolor: '#fdc500'
+            };
+            
+            // Add legend
+            predPlotData.layout.legend = {
+                orientation: 'h',
+                y: -0.2,
+                x: 0.5,
+                xanchor: 'center',
+                font: {
+                    color: '#ffffff'
+                }
+            };
+
+            // Update the trace colors to match theme
+            if (predPlotData.data && predPlotData.data.length > 0) {
+                // Historical data line (usually the first trace)
+                if (predPlotData.data[0]) {
+                    predPlotData.data[0].line = predPlotData.data[0].line || {};
+                    predPlotData.data[0].line.color = '#fdc500';
+                    predPlotData.data[0].line.width = 3;
+                }
+                
+                // Prediction line (usually the second trace)
+                if (predPlotData.data[1]) {
+                    predPlotData.data[1].line = predPlotData.data[1].line || {};
+                    predPlotData.data[1].line.color = '#4CAF50';
+                    predPlotData.data[1].line.width = 3;
+                    predPlotData.data[1].line.dash = 'dash';
+                }
+                
+                // Confidence interval (usually the third trace if it exists)
+                if (predPlotData.data[2]) {
+                    predPlotData.data[2].fillcolor = 'rgba(76, 175, 80, 0.2)';
+                    predPlotData.data[2].line = predPlotData.data[2].line || {};
+                    predPlotData.data[2].line.color = 'rgba(76, 175, 80, 0.5)';
+                }
+            }
+            
+            Plotly.newPlot('prediction-chart', predPlotData.data, predPlotData.layout, {
+                displayModeBar: true,
+                displaylogo: false,
+                modeBarButtonsToRemove: ['select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d'],
+                toImageButtonOptions: {
+                    format: 'png',
+                    filename: 'stock_prediction_chart',
+                    height: 500,
+                    width: 700,
+                    scale: 2
+                },
+                responsive: true
+            });
+            
+            // Store the original data for filtering
+            const originalData = JSON.parse(JSON.stringify(predPlotData.data));
+            
+            // Set 7D as default active button
+            document.querySelector('.time-range-btn[data-range="7"]').classList.add('active');
+            
+            // Handle time range filtering
+            document.querySelectorAll('.time-range-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Update active button
+                    document.querySelectorAll('.time-range-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const days = parseInt(this.dataset.range);
+                    filterChartByDays(days);
+                });
+            });
+            
+            // Initial filter to 7 days by default
+            filterChartByDays(7);
+            
+            function filterChartByDays(days) {
+                console.log(`Filtering chart to show ${days} days of data`);
+                
+                // Create a date object for filtering
+                const today = new Date();
+                const cutoffDate = new Date(today);
+                cutoffDate.setDate(today.getDate() - days);
+                
+                // Clone the original data for filtering
+                const filteredData = JSON.parse(JSON.stringify(originalData));
+                
+                // Filter each trace's data points
+                filteredData.forEach((trace, traceIndex) => {
+                    if (trace.x && trace.x.length > 0) {
+                        // Find indices of points that fall within the date range
+                        const validIndices = [];
+                        trace.x.forEach((dateStr, i) => {
+                            const pointDate = new Date(dateStr);
+                            if (pointDate >= cutoffDate) {
+                                validIndices.push(i);
+                            }
+                        });
+                        
+                        // Filter x and y values to only include points within range
+                        trace.x = validIndices.map(i => trace.x[i]);
+                        trace.y = validIndices.map(i => trace.y[i]);
+                    }
+                });
+                
+                // Update the chart with filtered data
+                Plotly.react('prediction-chart', filteredData, predPlotData.layout);
+            }
+        } catch (e) {
+            console.error("Error rendering chart:", e);
+            document.getElementById('prediction-chart').innerHTML = '<div class="chart-error">Unable to load chart. Please try again later.</div>';
+        }
+        {% endif %}
+        
+        // Add hover effects to prediction cards
+        const predCards = document.querySelectorAll('.pred-card');
+        predCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.15)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = 'none';
+            });
+        });
+    });
+</script>
 {% endblock %}

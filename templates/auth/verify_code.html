@@ -12,4 +12,197 @@
         <button type="submit" class="btn btn-primary">Verify</button>
     </form>
 </div>
+
+<style>
+    :root {
+        --primary: #003380;
+        --primary-dark: #00254d;
+        --accent: #FFD700;
+        --white: #ffffff;
+        --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .container {
+        max-width: 500px;
+        margin: 3rem auto;
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: var(--card-shadow);
+        color: var(--white);
+        position: relative;
+        overflow: hidden;
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    .container::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        z-index: 0;
+    }
+
+    .container h2 {
+        font-size: 2.2rem;
+        color: var(--white);
+        margin-bottom: 1.5rem;
+        text-align: center;
+        position: relative;
+    }
+
+    .container h2::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 3px;
+        background: var(--accent);
+        border-radius: 3px;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.8rem;
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 500;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 1rem 1rem 1rem 2.5rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        color: white;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        letter-spacing: 0.2em;
+    }
+
+    .form-control:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.15);
+        border-color: var(--accent);
+        box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .form-group::before {
+        content: '🔑';
+        position: absolute;
+        left: 1rem;
+        top: 2.8rem;
+        font-size: 1rem;
+        opacity: 0.7;
+    }
+
+    .btn-primary {
+        width: 100%;
+        padding: 1rem;
+        background: var(--accent);
+        color: var(--primary-dark);
+        border: none;
+        border-radius: 30px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-primary::after {
+        content: '→';
+        position: absolute;
+        right: 1.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1.2rem;
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background: #ffcf33;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+        padding-right: 2.5rem;
+    }
+
+    .btn-primary:hover::after {
+        opacity: 1;
+        right: 1rem;
+    }
+
+    /* Verification code animation */
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            margin: 2rem 1rem;
+            padding: 1.5rem;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add animation to form elements
+        const formElements = document.querySelectorAll('.form-group, .btn-primary');
+        formElements.forEach((element, index) => {
+            element.style.opacity = '0';
+            element.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                element.style.transition = 'all 0.5s ease';
+                element.style.opacity = '1';
+                element.style.transform = 'translateY(0)';
+            }, 100 * (index + 1));
+        });
+        
+        // Focus on the verification code input
+        setTimeout(() => {
+            document.getElementById('code').focus();
+        }, 500);
+        
+        // Add digit-by-digit input formatting
+        const codeInput = document.getElementById('code');
+        codeInput.addEventListener('input', function() {
+            // Remove non-numeric characters
+            this.value = this.value.replace(/[^0-9]/g, '');
+            
+            // Limit to 6 digits (typical verification code length)
+            if (this.value.length > 6) {
+                this.value = this.value.slice(0, 6);
+            }
+            
+            // Add pulse animation when all digits are entered
+            if (this.value.length === 6) {
+                document.querySelector('.btn-primary').style.animation = 'pulse 1s infinite';
+            } else {
+                document.querySelector('.btn-primary').style.animation = 'none';
+            }
+        });
+    });
+</script>
 {% endblock %}

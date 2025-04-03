@@ -8,7 +8,7 @@
     <p class="current-date">{{ current_date }}</p>
 
     <div class="converter-form">
-        <form method="post">
+        <form method="post" id="converter-form">
             {% csrf_token %}
             <div class="form-group">
                 <div class="currency-input">
@@ -28,6 +28,12 @@
                         </select>
                     </div>
 
+                    <div class="swap-currencies">
+                        <button type="button" id="swap-btn" title="Swap currencies">
+                            <i class="fas fa-exchange-alt"></i>
+                        </button>
+                    </div>
+
                     <div class="currency-select">
                         <label for="to_currency">To</label>
                         <select id="to_currency" name="to_currency" required>
@@ -40,7 +46,10 @@
                     </div>
                 </div>
             </div>
-            <button type="submit" class="convert-btn">Convert</button>
+            <button type="submit" class="convert-btn">
+                <span class="btn-text">Convert</span>
+                <span class="loading-spinner"></span>
+            </button>
         </form>
     </div>
 
@@ -51,126 +60,426 @@
                 <span class="amount">{{ amount }} {{ from_currency }}</span>
                 <span class="equals">=</span>
                 <span class="converted">{{ rate|floatformat:2 }} {{ to_currency }}</span>
+                {% if rate > amount %}
+                <span class="trend up" title="Rate is favorable"><i class="fas fa-arrow-up"></i></span>
+                {% else %}
+                <span class="trend down" title="Rate is lower"><i class="fas fa-arrow-down"></i></span>
+                {% endif %}
             </div>
             <p class="timestamp">As of {{ current_date }}</p>
+            
+            <div class="quick-conversions">
+                <div class="quick-conversion-item">
+                    <span class="quick-amount">10 {{ from_currency }}</span>
+                    <span class="quick-equals">=</span>
+                    <span class="quick-result">{{ rate|floatformat:2 }} {{ to_currency }}</span>
+                </div>
+                <div class="quick-conversion-item">
+                    <span class="quick-amount">100 {{ from_currency }}</span>
+                    <span class="quick-equals">=</span>
+                    <span class="quick-result">{{ rate|floatformat:2 }} {{ to_currency }}</span>
+                </div>
+                <div class="quick-conversion-item">
+                    <span class="quick-amount">1000 {{ from_currency }}</span>
+                    <span class="quick-equals">=</span>
+                    <span class="quick-result">{{ rate|floatformat:2 }} {{ to_currency }}</span>
+                </div>
+            </div>
         </div>
     {% endif %}
 
     {% if plot_data %}
         <div class="chart-container">
+            <div class="chart-header">
+                <h3>Historical Exchange Rate</h3>
+                <div class="chart-controls">
+                    <button class="time-range-btn active" data-range="7">7D</button>
+                    <button class="time-range-btn" data-range="30">1M</button>
+                    <button class="time-range-btn" data-range="90">3M</button>
+                    <button class="time-range-btn" data-range="180">6M</button>
+                </div>
+            </div>
             <div id="historical-chart"></div>
         </div>
-        <script>
-            var plotData = {{ plot_data|safe }};
-            Plotly.newPlot('historical-chart', plotData.data, plotData.layout);
-        </script>
     {% endif %}
+    
+    <div class="forex-info-cards">
+        <div class="info-card">
+            <div class="info-icon">
+                <i class="fas fa-info-circle"></i>
+            </div>
+            <h3>What is Forex?</h3>
+            <p>Foreign Exchange (Forex) is the global marketplace for trading national currencies against one another.</p>
+        </div>
+        <div class="info-card">
+            <div class="info-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h3>Market Volatility</h3>
+            <p>Currency exchange rates fluctuate based on economic indicators, political events, and market sentiment.</p>
+        </div>
+        <div class="info-card">
+            <div class="info-icon">
+                <i class="fas fa-university"></i>
+            </div>
+            <h3>Banking Rates</h3>
+            <p>Bank exchange rates often include service fees. Our converter shows mid-market rates for reference.</p>
+        </div>
+    </div>
 </div>
 
 <style>
     .forex-container {
         animation: fadeIn 0.8s ease-out;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem;
     }
 
     .forex-container h1 {
         font-size: 2.5rem;
-        background: var(--gradient);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        color: var(--primary-dark);
         margin-bottom: 1rem;
+        font-weight: 700;
+        text-align: center;
+        position: relative;
+        display: inline-block;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .forex-container h1::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        border-radius: 2px;
     }
 
     .current-date {
-        color: var(--text);
+        color: var(--text-dark);
         opacity: 0.8;
         margin-bottom: 2rem;
+        font-size: 1.3rem;
+        font-weight: bold;
+        text-align: center;
     }
 
     .converter-form {
-        background: linear-gradient(135deg, rgba(39, 84, 138, 0.15), rgba(24, 59, 78, 0.25));
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
         border-radius: 20px;
         padding: 2rem;
         margin-bottom: 2rem;
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(39, 84, 138, 0.2);
-        box-shadow: 0 4px 20px rgba(24, 59, 78, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: var(--card-shadow);
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        color: var(--white);
+        position: relative;
+        overflow: hidden;
     }
-
-    input, select {
-        background: rgba(245, 238, 220, 0.95);
-        border: 2px solid rgba(39, 84, 138, 0.3);
-        border-radius: 10px;
-        padding: 0.8rem;
-        color: #183B4E;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-        cursor: pointer;
-    }
-
-    input:focus, select:focus {
-        border-color: #27548A;
-        box-shadow: 0 0 0 3px rgba(39, 84, 138, 0.2);
-        outline: none;
-    }
-
-    select {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2327548A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 0.8rem center;
-        background-size: 1.2em;
-        padding-right: 2.5rem;
-    }
-
-    select option {
-        background: #F5EEDC;
-        color: #183B4E;
-        padding: 0.8rem;
-    }
-
-    label {
-        color: #DDA853;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
+    
+    .converter-form::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect fill="none" width="100" height="100"/><path fill="rgba(255,255,255,0.03)" d="M30,10L50,30L70,10L90,30L70,50L90,70L70,90L50,70L30,90L10,70L30,50L10,30L30,10Z"/></svg>');
+        background-size: 150px;
+        opacity: 0.5;
+        z-index: 0;
     }
 
     .form-group {
         display: flex;
         flex-direction: column;
         gap: 1.5rem;
+        align-items: center;
+        width: 100%;
+        position: relative;
+        z-index: 1;
     }
 
-    .currency-input, .currency-select {
+    .currency-input {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
+        align-items: center;
+        width: 100%;
     }
 
     .currency-selectors {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 0.5rem;
+        width: 100%;
+        max-width: 520px;
+        margin: 0 auto;
+        align-items: center;
     }
 
-    label {
-        color: var(--secondary);
-        font-weight: 500;
+    .currency-select {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    
+    .swap-currencies {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 1.5rem;
+    }
+    
+    #swap-btn {
+        background: rgba(255, 255, 255, 0.15);
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        color: var(--white);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    #swap-btn:hover {
+        background: var(--accent);
+        color: var(--primary-dark);
+        transform: rotate(180deg);
+    }
+
+    input, select {
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        padding: 0.8rem;
+        color: var(--primary-dark);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        cursor: pointer;
+        width: 100%;
+    }
+
+    input {
+        max-width: 300px;
     }
 
     select {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23FF8B3D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        max-width: 250px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2300296b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
         background-repeat: no-repeat;
         background-position: right 0.8rem center;
         background-size: 1.2em;
         padding-right: 2.5rem;
     }
 
+    input:focus, select:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(255, 213, 0, 0.2);
+        transform: translateY(-2px);
+    }
+
     select option {
-        background: var(--primary);
-        color: var(--text);
+        background: var(--white);
+        color: var(--primary-dark);
         padding: 0.8rem;
+    }
+
+    label {
+        color: var(--white);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+
+    .convert-btn {
+        background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+        color: var(--primary-dark);
+        border: none;
+        border-radius: 30px;
+        padding: 0.8rem 2rem;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 1.5rem;
+        width: 200px;
+        box-shadow: 0 4px 15px rgba(253, 197, 0, 0.2);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-left: auto;
+        margin-right: auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    .convert-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(253, 197, 0, 0.3);
+    }
+    
+    .loading-spinner {
+        display: none;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(0, 41, 107, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--primary-dark);
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    .convert-btn.loading .btn-text {
+        display: none;
+    }
+    
+    .convert-btn.loading .loading-spinner {
+        display: inline-block;
+    }
+
+    .conversion-result {
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        border-radius: 20px;
+        padding: 2rem;
+        margin-top: 2rem;
+        text-align: center;
+        animation: fadeInUp 0.8s ease-out;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: var(--card-shadow);
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        color: var(--white);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .conversion-result::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(90deg, var(--accent-dark), var(--accent), var(--accent-dark));
+    }
+
+    .conversion-result h2 {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+        color: var(--white);
+    }
+
+    .result-text {
+        font-size: 1.7rem;
+        margin: 1rem 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        font-weight: bold;
+    }
+
+    .amount, .converted {
+        color: var(--accent);
+        font-weight: 600;
+    }
+
+    .equals {
+        color: var(--white);
+        opacity: 0.8;
+    }
+    
+    .trend {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        font-size: 1rem;
+    }
+    
+    .trend.up {
+        background-color: rgba(0, 255, 0, 0.2);
+        color: #00ff00;
+    }
+    
+    .trend.down {
+        background-color: rgba(255, 0, 0, 0.2);
+        color: #ff6666;
+    }
+
+    .timestamp {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        margin-top: 1rem;
+    }
+    
+    .quick-conversions {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .quick-conversion-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .quick-conversion-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-3px);
+    }
+    
+    .quick-amount {
+        font-size: 1rem;
+        color: var(--white);
+    }
+    
+    .quick-equals {
+        font-size: 0.8rem;
+        opacity: 0.7;
+    }
+    
+    .quick-result {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: var(--accent);
     }
 
     .chart-container {
@@ -179,6 +488,47 @@
         border-radius: 20px;
         padding: 1.5rem;
         backdrop-filter: blur(10px);
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+        box-shadow: var(--card-shadow);
+    }
+    
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(0, 41, 107, 0.1);
+    }
+    
+    .chart-header h3 {
+        font-size: 1.3rem;
+        color: var(--primary-dark);
+        margin: 0;
+    }
+    
+    .chart-controls {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .time-range-btn {
+        background: rgba(0, 41, 107, 0.1);
+        border: none;
+        padding: 0.4rem 0.8rem;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--primary-dark);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .time-range-btn:hover, .time-range-btn.active {
+        background: var(--primary-dark);
+        color: var(--white);
     }
 
     /* Add custom Plotly modebar styling */
@@ -189,119 +539,60 @@
     }
 
     .js-plotly-plot .plotly .modebar-btn path {
-        fill: var(--secondary) !important;
+        fill: var(--primary-dark) !important;
     }
 
     .js-plotly-plot .plotly .modebar-btn:hover path {
-        fill: var(--accent) !important;
+        fill: var(--accent-dark) !important;
     }
-
-    /* Update the plot layout in the JavaScript */
-    <script>
-        {% if plot_data %}
-        document.addEventListener('DOMContentLoaded', function() {
-            var plotData = {{ plot_data|safe }};
-            
-            // Update layout for dark theme
-            plotData.layout.paper_bgcolor = 'rgba(0,0,0,0)';
-            plotData.layout.plot_bgcolor = 'rgba(0,0,0,0)';
-            plotData.layout.font = {
-                color: '#ffffff',
-                family: 'Plus Jakarta Sans, system-ui, sans-serif'
-            };
-            plotData.layout.xaxis.gridcolor = 'rgba(255,255,255,0.1)';
-            plotData.layout.yaxis.gridcolor = 'rgba(255,255,255,0.1)';
-            plotData.layout.xaxis.linecolor = 'rgba(255,255,255,0.2)';
-            plotData.layout.yaxis.linecolor = 'rgba(255,255,255,0.2)';
-            plotData.layout.margin = {
-                l: 50,
-                r: 50,
-                t: 30,
-                b: 50
-            };
     
-            Plotly.newPlot('historical-chart', plotData.data, plotData.layout, {
-                displayModeBar: true,
-                displaylogo: false,
-                modeBarButtonsToRemove: ['select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d'],
-                toImageButtonOptions: {
-                    format: 'png',
-                    filename: 'forex_chart',
-                    height: 500,
-                    width: 900,
-                    scale: 2
-                }
-            });
-        });
-        {% endif %}
-    </script>
-    input:focus, select:focus {
-        outline: none;
-        border-color: var(--secondary);
-        box-shadow: 0 0 0 2px rgba(255, 139, 61, 0.2);
+    .forex-info-cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-top: 3rem;
     }
-
-    .convert-btn {
-        background: var(--gradient);
-        color: var(--text);
-        border: none;
-        border-radius: 10px;
-        padding: 1rem 2rem;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        margin-top: 1.5rem;
-        width: 100%;
-    }
-
-    .convert-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(255, 139, 61, 0.2);
-    }
-
-    .conversion-result {
-        background: linear-gradient(135deg, rgba(39, 84, 138, 0.15), rgba(24, 59, 78, 0.25));
-        border-radius: 20px;
-        padding: 2rem;
-        margin-top: 2rem;
+    
+    .info-card {
+        background: linear-gradient(135deg, rgba(0, 41, 107, 0.05), rgba(0, 41, 107, 0.1));
+        border-radius: 15px;
+        padding: 1.5rem;
         text-align: center;
-        animation: fadeInUp 0.8s ease-out;
-        border: 1px solid rgba(39, 84, 138, 0.2);
-        box-shadow: 0 4px 20px rgba(24, 59, 78, 0.1);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 41, 107, 0.1);
+        position: relative;
+        overflow: hidden;
     }
-
-    .result-text {
-        font-size: 1.5rem;
-        margin: 1rem 0;
+    
+    .info-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--hover-shadow);
+    }
+    
+    .info-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, var(--primary-light), var(--primary));
+        border-radius: 50%;
         display: flex;
-        align-items: center;
         justify-content: center;
-        gap: 1rem;
+        align-items: center;
+        margin: 0 auto 1rem;
+        color: var(--white);
+        font-size: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0, 41, 107, 0.2);
     }
-
-    .amount, .converted {
-        color: var(--secondary);
-        font-weight: 600;
+    
+    .info-card h3 {
+        font-size: 1.2rem;
+        color: var(--primary-dark);
+        margin-bottom: 0.8rem;
     }
-
-    .equals {
-        color: var(--text);
-        opacity: 0.8;
-    }
-
-    .timestamp {
-        font-size: 0.9rem;
-        opacity: 0.8;
-        margin-top: 1rem;
-    }
-
-    .chart-container {
-        margin-top: 2rem;
-        background: rgba(255, 255, 255, 0);
-        border-radius: 20px;
-        padding: 1rem;
-        backdrop-filter: blur(10px);
+    
+    .info-card p {
+        font-size: 0.95rem;
+        color: var(--text-light);
+        line-height: 1.5;
     }
 
     @keyframes fadeIn {
@@ -324,36 +615,171 @@
         .currency-selectors {
             grid-template-columns: 1fr;
         }
+        
+        .swap-currencies {
+            grid-column: 1;
+            margin: 0.5rem 0;
+        }
 
         .result-text {
             flex-direction: column;
             gap: 0.5rem;
         }
+        
+        .forex-container {
+            padding: 1rem;
+        }
+        
+        .converter-form, .conversion-result {
+            padding: 1.5rem;
+        }
+        
+        .forex-info-cards {
+            grid-template-columns: 1fr;
+        }
+        
+        .quick-conversions {
+            grid-template-columns: 1fr;
+        }
     }
-    /* Update only the color-related properties in the plot layout */
-    <script>
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Swap currencies functionality
+        const swapBtn = document.getElementById('swap-btn');
+        const fromCurrency = document.getElementById('from_currency');
+        const toCurrency = document.getElementById('to_currency');
+        
+        if (swapBtn) {
+            swapBtn.addEventListener('click', function() {
+                const fromValue = fromCurrency.value;
+                const toValue = toCurrency.value;
+                
+                fromCurrency.value = toValue;
+                toCurrency.value = fromValue;
+            });
+        }
+        
+        // Form submission with loading state
+        const form = document.getElementById('converter-form');
+        const convertBtn = document.querySelector('.convert-btn');
+        
+        if (form) {
+            form.addEventListener('submit', function() {
+                convertBtn.classList.add('loading');
+                setTimeout(() => {
+                    convertBtn.classList.remove('loading');
+                }, 5000); // Fallback in case the page doesn't reload
+            });
+        }
+        
+        // Calculate quick conversions
+        {% if rate is not None %}
+        const baseRate = parseFloat("{{ rate|floatformat:2 }}".replace(',', '.'));
+        const quickAmounts = [10, 100, 1000];
+        const quickResults = document.querySelectorAll('.quick-result');
+        
+        if (quickResults.length === quickAmounts.length) {
+            for (let i = 0; i < quickAmounts.length; i++) {
+                const convertedValue = (baseRate * quickAmounts[i] / {{ amount|default:1 }}).toFixed(2);
+                quickResults[i].textContent = `${convertedValue} {{ to_currency }}`;
+            }
+        }
+        {% endif %}
+        
+        // Chart time range buttons
+        const timeRangeBtns = document.querySelectorAll('.time-range-btn');
+        
+        timeRangeBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                timeRangeBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Here you would typically filter the chart data based on the selected range
+                console.log(`Selected time range: ${this.dataset.range} days`);
+            });
+        });
+        
+        // Input animations
+        const inputs = document.querySelectorAll('input, select');
+        
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('focused');
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.classList.remove('focused');
+            });
+        });
+        
         {% if plot_data %}
-        document.addEventListener('DOMContentLoaded', function() {
+        // Update Plotly chart
+        try {
             var plotData = {{ plot_data|safe }};
             
-            // Update layout colors for theme consistency
-            plotData.layout.paper_bgcolor = 'rgba(39, 84, 138, 0.1)';
-            plotData.layout.plot_bgcolor = 'rgba(39, 84, 138, 0.05)';
+            // Update layout colors to match stock market theme
+            plotData.layout.paper_bgcolor = '#00296b';
+            plotData.layout.plot_bgcolor = '#00296b';
             plotData.layout.font = {
-                color: '#183B4E',
-                family: 'Plus Jakarta Sans, system-ui, sans-serif'
+                color: '#ffffff',
+                family: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif'
             };
-            plotData.layout.xaxis.gridcolor = 'rgba(39, 84, 138, 0.2)';
-            plotData.layout.yaxis.gridcolor = 'rgba(39, 84, 138, 0.2)';
-            plotData.layout.xaxis.linecolor = 'rgba(39, 84, 138, 0.3)';
-            plotData.layout.yaxis.linecolor = 'rgba(39, 84, 138, 0.3)';
-    
-            // Update the trace colors to match theme
-            plotData.data[0].line.color = '#27548A';
-    
-            Plotly.newPlot('historical-chart', plotData.data, plotData.layout);
-        });
+            
+            // Update axis styling to match stock market theme
+            if (plotData.layout.xaxis) {
+                plotData.layout.xaxis.gridcolor = 'rgba(255, 255, 255, 0.1)';
+                plotData.layout.xaxis.linecolor = 'rgba(255, 255, 255, 0.2)';
+                plotData.layout.xaxis.tickfont = { color: '#ffffff' };
+            }
+            
+            if (plotData.layout.yaxis) {
+                plotData.layout.yaxis.gridcolor = 'rgba(255, 255, 255, 0.1)';
+                plotData.layout.yaxis.linecolor = 'rgba(255, 255, 255, 0.2)';
+                plotData.layout.yaxis.tickfont = { color: '#ffffff' };
+            }
+            
+            plotData.layout.margin = {
+                l: 50,
+                r: 50,
+                t: 30,
+                b: 50
+            };
+            
+            // Add hover effects
+            plotData.layout.hoverlabel = {
+                bgcolor: '#00296b',
+                font: { color: '#ffffff' },
+                bordercolor: '#fdc500'
+            };
+
+            // Update the trace colors to match stock market theme
+            if (plotData.data && plotData.data.length > 0) {
+                plotData.data[0].line = plotData.data[0].line || {};
+                plotData.data[0].line.color = '#ffd500';
+                plotData.data[0].line.width = 3;
+                plotData.data[0].fill = 'tozeroy';
+                plotData.data[0].fillcolor = 'rgba(255, 213, 0, 0.1)';
+            }
+            
+            Plotly.newPlot('historical-chart', plotData.data, plotData.layout, {
+                displayModeBar: true,
+                displaylogo: false,
+                modeBarButtonsToRemove: ['select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d'],
+                toImageButtonOptions: {
+                    format: 'png',
+                    filename: 'forex_chart',
+                    height: 500,
+                    width: 700,
+                    scale: 2
+                }
+            });
+        } catch (e) {
+            console.error("Error rendering chart:", e);
+            document.getElementById('historical-chart').innerHTML = '<div class="chart-error">Unable to load chart. Please try again later.</div>';
+        }
         {% endif %}
-    </script>
-</style>
+    });
+</script>
 {% endblock %}
