@@ -3,85 +3,709 @@
 {% block title %}GST Calculator - TaxKar{% endblock %}
 
 {% block content %}
-<div class="calculator-container" style="animation: fadeInUp 0.8s ease-out; max-width: 1000px; margin: 0 auto; padding: 2rem;">
-    <h1 style="font-size: 2.5rem; color: var(--primary-dark); margin-bottom: 1rem; font-weight: 700; text-align: center; position: relative; display: inline-block; left: 50%; transform: translateX(-50%);">
-        GST Calculator
-        <span style="display: block; content: ''; position: absolute; bottom: -10px; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, transparent, var(--accent), transparent); border-radius: 2px;"></span>
-    </h1>
-    
+<div class="gst-container">
+    <h1>GST Calculator</h1>
+    <p class="current-date">{{ current_date }}</p>
+
     {% if error %}
-    <div class="alert alert-danger" style="background: rgba(255, 0, 0, 0.1); color: #d32f2f; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-        {{ error }}
+    <div class="error-message">
+        <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <p>{{ error }}</p>
     </div>
     {% endif %}
 
-    <div class="card" style="background: linear-gradient(135deg, var(--primary-dark), var(--primary)); border-radius: 20px; padding: 2rem; margin-bottom: 2rem; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: var(--card-shadow); max-width: 600px; margin: 2rem auto; color: var(--white); position: relative; overflow: hidden;">
-        <form method="post" style="display: flex; flex-direction: column; gap: 1.5rem; align-items: center;">
+    <div class="calculator-form">
+        <form method="post" id="gst-form">
             {% csrf_token %}
             
-            <div class="form-group" style="animation: fadeInUp 0.8s ease-out 0.1s;">
-                <label style="color: var(--white); font-weight: 600; margin-bottom: 0.5rem; display: block;">Base Amount (₹)</label>
-                <input type="number" name="base_amount" step="0.01" required 
-                       style="width: 400px; max-width: 100%; padding: 0.8rem; border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; outline: none; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.1); color: var(--white);"
-                       placeholder="Enter amount">
+            <div class="form-group">
+                <div class="input-wrapper">
+                    <label for="base_amount">Base Amount (₹)</label>
+                    <input type="number" id="base_amount" name="base_amount" step="0.01" required placeholder="Enter amount">
+                </div>
             </div>
 
-            <div class="form-group" style="animation: fadeInUp 0.8s ease-out 0.2s;">
-                <label style="color: var(--white); font-weight: 600; margin-bottom: 0.5rem; display: block;">Category</label>
-                <select name="category" id="gst-category" style="width: 400px; max-width: 100%; padding: 0.8rem; border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; outline: none; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.1); color: var(--white);">
-                    <option value="">Select a category</option>
-                    <option value="essential">Essential Goods (0%)</option>
-                    <option value="food_5">Food & Beverages (5%)</option>
-                    <option value="food_12">Food & Beverages (12%)</option>
-                    <option value="food_18">Food & Beverages (18%)</option>
-                    <option value="food_28">Food & Beverages (28%)</option>
-                    <option value="household_5">Household & Daily Use Items (5%)</option>
-                    <option value="household_12">Household & Daily Use Items (12%)</option>
-                    <option value="household_18">Household & Daily Use Items (18%)</option>
-                    <option value="household_28">Household & Daily Use Items (28%)</option>
-                    <option value="auto_5">Automobiles (5%)</option>
-                    <option value="auto_12">Automobiles (12%)</option>
-                    <option value="auto_18">Automobiles (18%)</option>
-                    <option value="auto_28">Automobiles (28%)</option>
-                    <option value="electronics_12">Electronics & Gadgets (12%)</option>
-                    <option value="electronics_18">Electronics & Gadgets (18%)</option>
-                    <option value="electronics_28">Electronics & Gadgets (28%)</option>
-                    <option value="jewelry_3">Gold, Jewellery & Precious Items (3%)</option>
-                    <option value="jewelry_12">Gold, Jewellery & Precious Items (12%)</option>
-                    <option value="clothing_5">Clothing & Textiles (5%)</option>
-                </select>
+            <div class="form-group">
+                <div class="input-wrapper">
+                    <label for="gst-category">Category</label>
+                    <select name="category" id="gst-category" required>
+                        <option value="">Select a category</option>
+                        <option value="essential">Essential Goods (0%)</option>
+                        <option value="food_5">Food & Beverages (5%)</option>
+                        <option value="food_12">Food & Beverages (12%)</option>
+                        <option value="food_18">Food & Beverages (18%)</option>
+                        <option value="food_28">Food & Beverages (28%)</option>
+                        <option value="household_5">Household & Daily Use Items (5%)</option>
+                        <option value="household_12">Household & Daily Use Items (12%)</option>
+                        <option value="household_18">Household & Daily Use Items (18%)</option>
+                        <option value="household_28">Household & Daily Use Items (28%)</option>
+                        <option value="auto_5">Automobiles (5%)</option>
+                        <option value="auto_12">Automobiles (12%)</option>
+                        <option value="auto_18">Automobiles (18%)</option>
+                        <option value="auto_28">Automobiles (28%)</option>
+                        <option value="electronics_12">Electronics & Gadgets (12%)</option>
+                        <option value="electronics_18">Electronics & Gadgets (18%)</option>
+                        <option value="electronics_28">Electronics & Gadgets (28%)</option>
+                        <option value="jewelry_3">Gold, Jewellery & Precious Items (3%)</option>
+                        <option value="jewelry_12">Gold, Jewellery & Precious Items (12%)</option>
+                        <option value="clothing_5">Clothing & Textiles (5%)</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="form-group" style="animation: fadeInUp 0.8s ease-out 0.3s;">
-                <label style="color: var(--white); font-weight: 600; margin-bottom: 0.5rem; display: block;">Commodity</label>
-                <select name="commodity" id="commodity-select" style="width: 400px; max-width: 100%; padding: 0.8rem; border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; outline: none; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.1); color: var(--white);">
-                    <option value="">Select category first</option>
-                </select>
+            <div class="form-group">
+                <div class="input-wrapper">
+                    <label for="commodity-select">Commodity</label>
+                    <select name="commodity" id="commodity-select" required>
+                        <option value="">Select category first</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="form-group" style="animation: fadeInUp 0.8s ease-out 0.4s;">
-                <label style="color: var(--white); font-weight: 600; margin-bottom: 0.5rem; display: block;">Transaction Type</label>
-                <select name="transaction_type" style="width: 400px; max-width: 100%; padding: 0.8rem; border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; outline: none; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.1); color: var(--white);">
-                    <option value="INTRA">Intra State (CGST + SGST)</option>
-                    <option value="INTER">Inter State (IGST)</option>
-                </select>
+            <div class="form-group">
+                <div class="input-wrapper">
+                    <label for="transaction_type">Transaction Type</label>
+                    <select name="transaction_type" id="transaction_type" required>
+                        <option value="INTRA">Intra State (CGST + SGST)</option>
+                        <option value="INTER">Inter State (IGST)</option>
+                    </select>
+                </div>
             </div>
 
-            <button type="submit" class="btn" style="background: var(--accent); color: var(--white); padding: 1rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; animation: fadeInUp 0.8s ease-out 0.5s; width: 200px; position: relative; overflow: hidden;">
-                Calculate GST
+            <button type="submit" class="search-btn">
+                <span class="btn-text">Calculate GST</span>
+                <span class="loading-spinner"></span>
             </button>
 
-            {% if not user.is_authenticated %}
-            <div class="login-prompt" style="text-align: center; margin-top: 1rem; animation: fadeInUp 0.8s ease-out 0.6s;">
-                <p style="color: var(--text-light);">Want to save your calculation history? 
-                    <a href="{% url 'login' %}" style="color: var(--primary); text-decoration: none; font-weight: 600;">Log in</a> or 
-                    <a href="{% url 'register' %}" style="color: var(--primary); text-decoration: none; font-weight: 600;">create an account</a>.
-                </p>
-            </div>
-            {% endif %}
         </form>
     </div>
+
+    {% if result %}
+    <div class="gst-result">
+        <div class="result-header">
+            <h2>GST Calculation Results</h2>
+            <div class="result-badge">
+                <span class="badge-text">{{ result.transaction_type }}</span>
+            </div>
+        </div>
+        
+        <div class="result-content">
+            <div class="price-cards">
+                <div class="price-card">
+                    <div class="price-header">Base Amount</div>
+                    <div class="price-value">₹{{ result.base_amount|floatformat:2 }}</div>
+                </div>
+                
+                <div class="price-card">
+                    <div class="price-header">GST Amount</div>
+                    <div class="price-value">₹{{ result.gst_amount|floatformat:2 }}</div>
+                    <div class="price-info">
+                        <span class="info-label">GST Rate:</span>
+                        <span class="info-value">{{ result.gst_rate }}%</span>
+                    </div>
+                </div>
+                
+                <div class="price-card">
+                    <div class="price-header">Total Amount</div>
+                    <div class="price-value">₹{{ result.total_amount|floatformat:2 }}</div>
+                </div>
+            </div>
+
+            <div class="breakdown-section">
+                <div class="chart-section">
+                    <div class="chart-header">
+                        <h3>GST Breakdown</h3>
+                    </div>
+                    <div id="gst-chart" class="chart-container"></div>
+                </div>
+                
+                <div class="breakdown-table-container">
+                    <h3>Detailed Breakdown</h3>
+                    <table class="breakdown-table">
+                        <thead>
+                            <tr>
+                                <th>Component</th>
+                                <th>Amount (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Base Amount</td>
+                                <td>₹{{ result.base_amount|floatformat:2 }}</td>
+                            </tr>
+                            {% if result.transaction_type == 'INTRA' %}
+                            <tr>
+                                <td>CGST ({{ result.gst_rate|floatformat:1|divisibleby:"2" }}%)</td>
+                                <td>₹{{ result.cgst_amount|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td>SGST ({{ result.gst_rate|floatformat:1|divisibleby:"2" }}%)</td>
+                                <td>₹{{ result.sgst_amount|floatformat:2 }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td>IGST ({{ result.gst_rate }}%)</td>
+                                <td>₹{{ result.gst_amount|floatformat:2 }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr class="total-row">
+                                <td>Total Amount</td>
+                                <td>₹{{ result.total_amount|floatformat:2 }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="gst-info-cards">
+        <div class="info-card">
+            <div class="info-icon">
+                <i class="fas fa-percentage"></i>
+            </div>
+            <h3>GST Rates</h3>
+            <p>India has a multi-tier GST structure with rates of 0%, 5%, 12%, 18%, and 28% depending on the type of goods and services.</p>
+        </div>
+        <div class="info-card">
+            <div class="info-icon">
+                <i class="fas fa-map-marked-alt"></i>
+            </div>
+            <h3>Intra vs Inter State</h3>
+            <p>Intra-state transactions are charged CGST and SGST, while inter-state transactions are charged IGST at the combined rate.</p>
+        </div>
+        <div class="info-card">
+            <div class="info-icon">
+                <i class="fas fa-file-invoice"></i>
+            </div>
+            <h3>GST Filing</h3>
+            <p>Businesses must file periodic GST returns based on their turnover. Different forms apply for different types of taxpayers.</p>
+        </div>
+    </div>
 </div>
+
+<style>
+    .gst-container {
+        animation: fadeIn 0.8s ease-out;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .gst-container h1 {
+        font-size: 2.8rem;
+        color: var(--primary-dark);
+        margin-bottom: 1rem;
+        font-weight: 700;
+        text-align: center;
+        position: relative;
+        display: inline-block;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .gst-container h1::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        border-radius: 2px;
+    }
+
+    .current-date {
+        color: var(--text-dark);
+        opacity: 0.8;
+        margin-bottom: 2rem;
+        font-size: 1.3rem;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .calculator-form {
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: var(--card-shadow);
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        color: var(--white);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .calculator-form::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect fill="none" width="100" height="100"/><path fill="rgba(255,255,255,0.03)" d="M30,10L50,30L70,10L90,30L70,50L90,70L70,90L50,70L30,90L10,70L30,50L10,30L30,10Z"/></svg>');
+        background-size: 150px;
+        opacity: 0.5;
+        z-index: 0;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+        width: 100%;
+        position: relative;
+        z-index: 1;
+        margin-bottom: 1.5rem;
+    }
+
+    .input-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+        max-width: 500px;
+    }
+
+    input[type="number"], select {
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        padding: 0.8rem;
+        color: var(--primary-dark);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    input[type="number"]:focus, select:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(255, 213, 0, 0.2);
+        transform: translateY(-2px);
+    }
+
+    label {
+        color: var(--white);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+
+    .search-btn {
+        background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+        color: var(--primary-dark);
+        border: none;
+        border-radius: 30px;
+        padding: 0.8rem 2rem;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 1rem;
+        width: 200px;
+        box-shadow: 0 4px 15px rgba(253, 197, 0, 0.2);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-left: auto;
+        margin-right: auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    .search-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(253, 197, 0, 0.3);
+    }
+    
+    .loading-spinner {
+        display: none;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(0, 41, 107, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--primary-dark);
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    .search-btn.loading .btn-text {
+        display: none;
+    }
+    
+    .search-btn.loading .loading-spinner {
+        display: inline-block;
+    }
+
+    .error-message {
+        background: rgba(255, 78, 22, 0.1);
+        border-left: 4px solid #ff4e16;
+        padding: 1rem;
+        border-radius: 10px;
+        margin: 1rem auto;
+        max-width: 700px;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: #ff4e16;
+        animation: fadeIn 0.5s ease-out;
+    }
+    
+    .error-icon {
+        font-size: 1.5rem;
+    }
+
+    .login-prompt {
+        text-align: center;
+        margin-top: 1.5rem;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.9rem;
+    }
+
+    .login-prompt a {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .login-prompt a:hover {
+        text-decoration: underline;
+    }
+
+    .gst-result {
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        border-radius: 20px;
+        padding: 2rem;
+        margin-top: 2rem;
+        animation: fadeInUp 0.8s ease-out;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: var(--card-shadow);
+        max-width: 1100px;
+        margin-left: auto;
+        margin-right: auto;
+        color: var(--white);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .gst-result::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(90deg, var(--accent-dark), var(--accent), var(--accent-dark));
+    }
+    
+    .result-header {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+
+    .result-header h2 {
+        font-size: 2rem;
+        color: var(--white);
+        margin: 0;
+        text-align: center;
+    }
+    
+    .result-badge {
+        background: rgba(76, 175, 80, 0.2);
+        border: 1px solid rgba(76, 175, 80, 0.5);
+        color: #4CAF50;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    .result-badge::before {
+        content: '';
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background-color: #4CAF50;
+        border-radius: 50%;
+        animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+    
+    .result-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+    
+    .price-cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+    }
+    
+    .price-card {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .price-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    .price-header {
+        font-size: 1.3rem;
+        color: var(--white);
+        margin-bottom: 1rem;
+        opacity: 0.9;
+    }
+    
+    .price-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: var(--accent);
+        margin-bottom: 1rem;
+        text-shadow: 0 2px 10px rgba(253, 197, 0, 0.3);
+    }
+    
+    .price-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .info-label {
+        font-size: 1rem;
+        opacity: 0.8;
+    }
+    
+    .info-value {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #4CAF50;
+    }
+
+    .breakdown-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .chart-section {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        padding: 1.5rem;
+    }
+    
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .chart-header h3 {
+        font-size: 1.5rem;
+        color: var(--white);
+        margin: 0;
+    }
+    
+    .chart-container {
+        height: 300px;
+        width: 100%;
+        margin: 0 auto;
+    }
+
+    .breakdown-table-container {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        padding: 1.5rem;
+        overflow-x: auto;
+    }
+    
+    .breakdown-table-container h3 {
+        font-size: 1.5rem;
+        color: var(--white);
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+    
+    .breakdown-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .breakdown-table th {
+        background-color: rgba(0, 41, 107, 0.3);
+        color: var(--accent);
+        font-weight: 600;
+        text-align: center;
+        padding: 12px 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .breakdown-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--white);
+        text-align: center;
+    }
+    
+    .breakdown-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .breakdown-table tr:hover td {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .total-row {
+        font-weight: bold;
+    }
+    
+    .total-row td {
+        color: var(--accent) !important;
+        font-size: 1.1rem;
+    }
+
+    .gst-info-cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-top: 3rem;
+    }
+    
+    .info-card {
+        background: linear-gradient(135deg, rgba(0, 41, 107, 0.05), rgba(0, 41, 107, 0.1));
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 41, 107, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .info-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--hover-shadow);
+    }
+    
+    .info-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, var(--primary-light), var(--primary));
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto 1rem;
+        color: var(--white);
+        font-size: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0, 41, 107, 0.2);
+    }
+    
+    .info-card h3 {
+        font-size: 1.2rem;
+        color: var(--primary-dark);
+        margin-bottom: 0.8rem;
+    }
+    
+    .info-card p {
+        font-size: 0.95rem;
+        color: var(--text-light);
+        line-height: 1.5;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 992px) {
+        .price-cards {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .breakdown-section {
+            grid-template-columns: 1fr;
+        }
+        
+        .gst-info-cards {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .gst-container {
+            padding: 1rem;
+        }
+        
+        .calculator-form, .gst-result {
+            padding: 1.5rem;
+        }
+        
+        .price-cards {
+            grid-template-columns: 1fr;
+        }
+        
+        .gst-info-cards {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
 
 <script>
 const categoryData = {
@@ -165,7 +789,10 @@ const categoryData = {
 
 const categorySelect = document.getElementById('gst-category');
 const commoditySelect = document.getElementById('commodity-select');
+const gstForm = document.getElementById('gst-form');
+const searchBtn = document.querySelector('.search-btn');
 
+// Populate commodity dropdown based on selected category
 categorySelect.addEventListener('change', function() {
     const category = this.value;
     commoditySelect.innerHTML = '<option value="">Select a commodity</option>';
@@ -178,6 +805,93 @@ categorySelect.addEventListener('change', function() {
             commoditySelect.appendChild(option);
         });
     }
+});
+
+// Add loading state to button on form submission
+if (gstForm) {
+    gstForm.addEventListener('submit', function() {
+        searchBtn.classList.add('loading');
+    });
+}
+
+// Initialize GST breakdown chart if result exists
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('gst-chart')) {
+        // This would be replaced with actual chart data from your backend
+        const transactionType = "{{ result.transaction_type|default:'INTRA' }}";
+        const baseAmount = {{ result.base_amount|default:0 }};
+        
+        if (transactionType === 'INTRA') {
+            const cgstAmount = {{ result.cgst_amount|default:0 }};
+            const sgstAmount = {{ result.sgst_amount|default:0 }};
+            
+            // Create a pie chart using Chart.js (you'll need to include Chart.js in your base template)
+            if (typeof Chart !== 'undefined') {
+                new Chart(document.getElementById('gst-chart'), {
+                    type: 'pie',
+                    data: {
+                        labels: ['Base Amount', 'CGST', 'SGST'],
+                        datasets: [{
+                            data: [baseAmount, cgstAmount, sgstAmount],
+                            backgroundColor: ['#00296b', '#fdc500', '#4CAF50'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                fontColor: '#ffffff'
+                            }
+                        }
+                    }
+                });
+            }
+        } else {
+            const igstAmount = {{ result.gst_amount|default:0 }};
+            
+            // Create a pie chart for IGST
+            if (typeof Chart !== 'undefined') {
+                new Chart(document.getElementById('gst-chart'), {
+                    type: 'pie',
+                    data: {
+                        labels: ['Base Amount', 'IGST'],
+                        datasets: [{
+                            data: [baseAmount, igstAmount],
+                            backgroundColor: ['#00296b', '#fdc500'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                fontColor: '#ffffff'
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    }
+    
+    // Add hover effects to cards
+    const cards = document.querySelectorAll('.price-card, .info-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.15)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = '';
+            this.style.boxShadow = '';
+        });
+    });
 });
 </script>
 {% endblock %}
