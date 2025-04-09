@@ -124,7 +124,57 @@ def google_login_view(request):
 
     return render(request, 'auth/login.html')
 
+'''
+# Replace MessageBird with Vonage
+try:
+    import vonage
+except ImportError:
+    vonage = None
 
+def phone_login(request):
+    if request.method == 'POST':
+        phone_number = request.POST.get('phone_number')
+
+        # Generate verification code
+        code = PhoneVerification.generate_code()
+        verification = PhoneVerification.objects.create(
+            phone_number=phone_number,
+            verification_code=code
+        )
+
+        # For development, always show the code in the UI
+        if settings.DEBUG:
+            messages.info(request, f'Development mode: Your verification code is {code}')
+            
+        # Try to send SMS via Vonage if not in DEBUG mode
+        if not settings.DEBUG and vonage:
+            try:
+                client = vonage.Client(key=settings.VONAGE_API_KEY, secret=settings.VONAGE_API_SECRET)
+                sms = vonage.Sms(client)
+                
+                response = sms.send_message({
+                    'from': 'TaxKar',
+                    'to': phone_number,
+                    'text': f'Your TaxKar verification code is {code}'
+                })
+                
+                if response["messages"][0]["status"] == "0":
+                    messages.success(request, 'Verification code sent successfully!')
+                else:
+                    messages.warning(request, f'Error sending SMS: {response["messages"][0]["error-text"]}')
+                    
+            except Exception as e:
+                print(f"Vonage error: {e}")
+                messages.warning(request, 'Could not send SMS. Using development mode instead.')
+
+        # Store phone number in session for verification page
+        request.session['phone_number'] = phone_number
+        return redirect('verify_code')
+
+    return render(request, 'auth/phone_login.html')
+
+
+'''
 def phone_login(request):
     if request.method == 'POST':
         phone_number = request.POST.get('phone_number')
@@ -150,31 +200,6 @@ def phone_login(request):
 
     return render(request, 'auth/phone_login.html')
 
-
-'''
-def phone_login(request):
-    if request.method == 'POST':
-        phone_number = request.POST.get('phone_number')
-
-        # Generate verification code
-        code = PhoneVerification.generate_code()
-        PhoneVerification.objects.create(
-            phone_number=phone_number,
-            verification_code=code
-        )
-
-        # For development testing - skip Twilio API call
-
-
-        # Just show the code in a message
-        messages.success(request, f'Verification code: {code}')
-
-        # Store phone number in session for verification page
-        request.session['phone_number'] = phone_number
-        return redirect('verify_code')
-
-    return render(request, 'auth/phone_login.html')
-'''
 
 def verify_code(request):
     if request.method == 'POST':

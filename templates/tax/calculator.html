@@ -392,6 +392,30 @@
     #old-regime-deductions {
         width: 100%;
         animation: fadeInUp 0.8s ease-out;
+        position: relative;
+        z-index: 10;
+    }
+
+    .deduction-card {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 1.2rem;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+        position: relative;
+        z-index: 11;
+    }
+
+    .deduction-card input[type="number"] {
+        background: rgba(255, 255, 255, 0.9) !important;
+        position: relative;
+        z-index: 12;
+        pointer-events: auto !important;
+        opacity: 1 !important;
+        cursor: text !important;
     }
 
     #old-regime-deductions h3 {
@@ -769,20 +793,44 @@ const searchBtn = document.querySelector('.search-btn');
 taxRegimeSelect.addEventListener('change', function() {
     if (this.value === 'OLD') {
         oldRegimeDeductions.style.display = 'block';
+        oldRegimeDeductions.style.zIndex = '10';
+        // Enable all input fields in old regime section
+        oldRegimeDeductions.querySelectorAll('input').forEach(input => {
+            input.disabled = false;
+            input.style.pointerEvents = 'auto';
+            input.style.opacity = '1';
+        });
     } else {
         oldRegimeDeductions.style.display = 'none';
+        // Disable and reset all input fields in old regime section
+        oldRegimeDeductions.querySelectorAll('input').forEach(input => {
+            input.disabled = true;
+            if (!input.readOnly) {
+                input.value = '0';
+            }
+        });
     }
 });
 
-// Add loading state to button on form submission
-if (taxForm) {
-    taxForm.addEventListener('submit', function() {
-        searchBtn.classList.add('loading');
-    });
-}
-
-// Initialize tax breakdown chart if result exists
+// Initialize the form state on page load
 document.addEventListener('DOMContentLoaded', function() {
+    // Set initial state based on selected regime
+    const initialRegime = taxRegimeSelect.value;
+    if (initialRegime === 'OLD') {
+        oldRegimeDeductions.style.display = 'block';
+        oldRegimeDeductions.style.zIndex = '10';
+        oldRegimeDeductions.querySelectorAll('input').forEach(input => {
+            input.disabled = false;
+            input.style.pointerEvents = 'auto';
+            input.style.opacity = '1';
+        });
+    } else {
+        oldRegimeDeductions.style.display = 'none';
+        oldRegimeDeductions.querySelectorAll('input').forEach(input => {
+            input.disabled = true;
+        });
+    }
+
     if (document.getElementById('tax-chart')) {
         // This would be replaced with actual chart data from your backend
         const chartData = {
@@ -813,5 +861,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
+// Add loading state to button on form submission
+if (taxForm) {
+    taxForm.addEventListener('submit', function() {
+        searchBtn.classList.add('loading');
+    });
+}
 </script>
 {% endblock %}

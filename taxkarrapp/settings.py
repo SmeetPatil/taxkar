@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-t8&9b0c&33k_f3!a*m%)siq*y^=0v!nl4f)(wx#qsh6a3w3jf8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['.vercel.app']
 
 
 # Application definition
@@ -163,13 +163,4 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-# Login settings
-LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'home'
-LOGOUT_REDIRECT_URL = 'home'
 
-FOREX_API_KEY = '4RV4AL39F2VA8GYL'
-
-
-
-  # Get your free API key from huggingface.co
